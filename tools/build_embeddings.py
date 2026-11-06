@@ -1,5 +1,5 @@
 """Build an offline dense index from eligible canonical source chunks."""
-import os,sys,json,hashlib,time
+import argparse,os,sys,json,hashlib,time
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'src'))
 from ziwei_kb.common import connect,read_json,write_json,model_path
@@ -7,6 +7,7 @@ os.environ['HF_HUB_OFFLINE']='1';os.environ['TRANSFORMERS_OFFLINE']='1';os.envir
 os.environ['HF_HUB_DISABLE_TELEMETRY']='1'
 
 if __name__=='__main__':
+    parser=argparse.ArgumentParser();parser.add_argument('--rebuild',action='store_true');args=parser.parse_args()
     import numpy as np,torch
     from sentence_transformers import SentenceTransformer
     model_spec=read_json(ROOT/'manifests/embedding-model.json')
@@ -15,7 +16,7 @@ if __name__=='__main__':
     contract={k:model_spec[k] for k in ['revision','dimensions','max_seq_length','normalized','query_prompt']}
     generation_hash=hashlib.sha256(json.dumps([fingerprint,contract],sort_keys=True).encode()).hexdigest()
     generation=f"qwen3-{model_spec['revision'][:8]}-{generation_hash[:10]}";out=ROOT/'indexes'/generation;out.mkdir(exist_ok=True)
-    if not (out/'manifest.json').exists():
+    if args.rebuild or not all((out/name).is_file() for name in ['manifest.json','vectors.npy','rows.json']):
         device='cuda' if torch.cuda.is_available() else 'cpu';torch.set_num_threads(4)
         model=SentenceTransformer(str(model_path(model_spec)),device=device,local_files_only=True,
             model_kwargs={'dtype':torch.float16} if device=='cuda' else {})

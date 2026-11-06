@@ -1,5 +1,5 @@
 """Prepare a source checkout using pinned sources and project-local generated assets."""
-import argparse,datetime,hashlib,json,os,shutil,subprocess,sys
+import argparse,datetime,hashlib,json,os,shutil,sqlite3,subprocess,sys
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -40,18 +40,21 @@ def plan(args):
                 [folder+'/node_modules/.package-lock.json'],[folder+'/package-lock.json'])
     add('extract-engine',['node','--import','./node_modules/tsx/dist/loader.mjs','../tools/extract_engine.ts'],ROOT/'repo',
         ['sources/supplementary/engine-knowledge.json'],['tools/extract_engine.ts','config/sources.lock.json'])
-    core_inputs=['tools/build_knowledge.py','tools/import_renji.py','tools/chart_engine.ts','tools/feature_engine.ts','src/ziwei_kb/common.py','design/knowledge-schema.sql','config/sources.lock.json']
+    core_inputs=['tools/build_knowledge.py','tools/import_renji.py','tools/chart_engine.ts','tools/feature_engine.ts','src/ziwei_kb/common.py','design/knowledge-schema.sql','config/sources.lock.json',
+                 'sources/supplementary/engine-knowledge.json','sources/tianji-462faa4/data/entries.jsonl','sources/renji/data/entries.jsonl']
     core_inputs += [p.relative_to(ROOT).as_posix() for p in (ROOT/'sources/classics').glob('wikisource-*.json')]
     add('knowledge',py+['tools/build_knowledge.py'],outputs=['knowledge/knowledge.sqlite','knowledge/concepts.json','manifests/knowledge.json'],inputs=core_inputs)
     add('geography',py+['tools/collect_geography.py'],outputs=['knowledge/geography.sqlite','manifests/geography.json'],inputs=['tools/collect_geography.py','config/source-assets.lock.json'])
     if not args.lexical_only:
-        add('embedding-model',py+['tools/download_model.py'],outputs=['models/'+args.model_directory+'/model.safetensors'],inputs=['config/embedding-model.json','config/model-checksums.json','tools/download_model.py'])
-        add('embedding-index',py+['tools/build_embeddings.py'],outputs=['indexes/current.json','manifests/embedding-token-lengths.json'],inputs=core_inputs+['tools/build_embeddings.py','config/embedding-model.json','manifests/embedding-model.json'])
+        model_files=json.loads((ROOT/'config/model-checksums.json').read_text(encoding='utf8'))['files']
+        add('embedding-model',py+['tools/download_model.py'],outputs=['models/'+args.model_directory+'/'+row['path'] for row in model_files],inputs=['config/embedding-model.json','config/model-checksums.json','tools/download_model.py'])
+        add('embedding-index',py+['tools/build_embeddings.py']+(['--rebuild'] if args.rebuild else []),outputs=['indexes/current.json','manifests/embedding-token-lengths.json'],inputs=core_inputs+['tools/build_embeddings.py','config/embedding-model.json','manifests/embedding-model.json'])
     if args.profile=='full':
-        add('case-downloads',py+['tools/download_assets.py'],outputs=['manifests/v4-downloads.json'],inputs=['data/MANIFEST.json','tools/download_assets.py'])
-        add('case-shards',py+['tools/build_cases.py','--workers',str(args.workers)],outputs=['manifests/cases.json','cases/v4.0-13d/year-1950.sqlite','cases/v4.0-13d/year-2026.sqlite'],inputs=['tools/build_cases.py','design/case-shard-schema.sql','data/MANIFEST.json'])
+        years=[row['year'] for row in json.loads((ROOT/'data/MANIFEST.json').read_text(encoding='utf8'))['files']]
+        add('case-downloads',py+['tools/download_assets.py'],outputs=['manifests/v4-downloads.json']+[f'sources/v4.0-13d/year-{year}.jsonl.zst' for year in years],inputs=['data/MANIFEST.json','tools/download_assets.py'])
+        add('case-shards',py+['tools/build_cases.py','--workers',str(args.workers)],outputs=['manifests/cases.json']+[f'cases/v4.0-13d/year-{year}.sqlite' for year in years],inputs=['tools/build_cases.py','design/case-shard-schema.sql','data/MANIFEST.json'])
         add('candidate-extraction',py+['tools/extract_dataset_references.py'],outputs=['sources/supplementary/v4-reference-materials.jsonl','manifests/dataset-references.json'],inputs=['tools/extract_dataset_references.py','data/MANIFEST.json'])
-        add('candidate-database',py+['tools/import_dataset_references.py'],outputs=['knowledge/reference-materials.sqlite'],inputs=['tools/import_dataset_references.py','design/knowledge-schema.sql','tools/extract_dataset_references.py'])
+        add('candidate-database',py+['tools/import_dataset_references.py'],outputs=['knowledge/reference-materials.sqlite'],inputs=['tools/import_dataset_references.py','design/knowledge-schema.sql','tools/extract_dataset_references.py','src/ziwei_kb/common.py','data/MANIFEST.json','manifests/dataset-references.json'])
         add('twins-features',['node','--import','./node_modules/tsx/dist/loader.mjs','../tools/build_twins.ts'],ROOT/'repo',outputs=['indexes/twins-major-split-v1/features.jsonl','indexes/twins-major-split-v1/build.json'],inputs=['tools/build_twins.ts','config/sources.lock.json'])
         add('twins-index',py+['tools/pack_twins.py'],outputs=['manifests/twins.json','indexes/twins-major-split-v1/features.npy','indexes/twins-major-split-v1/dates.npy'],inputs=['tools/pack_twins.py','tools/verify_twins.ts','tools/build_twins.ts'])
     add('web-build',npm_command()+['run','build'],ROOT/'web',outputs=['web/dist/index.html'],inputs=['web/package-lock.json']+[p.relative_to(ROOT).as_posix() for p in (ROOT/'web/src').rglob('*') if p.is_file()]+[p.relative_to(ROOT).as_posix() for p in (ROOT/'web/public').rglob('*') if p.is_file()]+['web/index.html'])
@@ -65,6 +68,19 @@ def verify_assets():
         path=ROOT/row['path']
         if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest()!=row['sha256']:
             raise RuntimeError('固定来源快照缺失或有改动：'+row['path'])
+
+def refresh_candidate_stats(root=ROOT):
+    database=root/'knowledge/reference-materials.sqlite';manifest=root/'manifests/knowledge.json'
+    if not database.exists() or not manifest.exists():return
+    conn=sqlite3.connect(database.resolve().as_uri()+'?mode=ro',uri=True)
+    try:
+        units=conn.execute('SELECT count(*) FROM source_units').fetchone()[0]
+        chunks=conn.execute('SELECT count(*) FROM chunks').fetchone()[0]
+    finally:conn.close()
+    stats=json.loads(manifest.read_text(encoding='utf8'))
+    stats.update({'dataset_reference_units':units,'source_units_total':stats['source_units']+units,'chunks_total':stats['chunks']+chunks,
+                  'reference_database':'knowledge/reference-materials.sqlite','candidate_policy':'Explicit candidate-only lookup; not promoted to validated rules.'})
+    atomic_json(manifest,stats)
 
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
@@ -102,6 +118,7 @@ def main(argv=None):
             print('准备：'+step['name'],flush=True)
             subprocess.run(step['command'],cwd=step['cwd'],env=env,check=True)
             if signature:state[step['name']]=signature;atomic_json(state_path,state)
+        refresh_candidate_stats()
         marker={'schema_version':1,'profile':args.profile,'semantic':not args.lexical_only,'status':'checking','prepared_at':datetime.datetime.now(datetime.timezone.utc).isoformat()}
         atomic_json(ROOT/'runtime/installation.json',marker)
         subprocess.run([sys.executable,'-X','utf8','ziwei.py','doctor'],cwd=ROOT,env=env,check=True)

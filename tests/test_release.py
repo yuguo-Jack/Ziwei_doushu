@@ -1,5 +1,5 @@
 """Publication/migration contracts; no network, real model or user records."""
-import hashlib,importlib.util,json,os,subprocess,sys,tempfile,unittest
+import hashlib,importlib.util,json,os,sqlite3,subprocess,sys,tempfile,unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -46,5 +46,14 @@ class ReleaseTests(unittest.TestCase):
             result=module('check_release').audit(['good.py','secret.txt','runtime/chat.sqlite'],root)
             self.assertFalse(result['passed']);self.assertEqual(len(result['problems']),2)
             self.assertNotIn('x'*36,json.dumps(result))
+
+    def test_core_manifest_keeps_reused_candidate_database_totals(self):
+        with tempfile.TemporaryDirectory(dir=ROOT/'runtime') as folder:
+            root=Path(folder);(root/'knowledge').mkdir();(root/'manifests').mkdir()
+            conn=sqlite3.connect(root/'knowledge/reference-materials.sqlite')
+            conn.executescript('CREATE TABLE source_units(id); CREATE TABLE chunks(id); INSERT INTO source_units VALUES(1),(2); INSERT INTO chunks VALUES(1),(2),(3);');conn.close()
+            path=root/'manifests/knowledge.json';path.write_text(json.dumps({'source_units':100,'chunks':120}),encoding='utf8')
+            module('bootstrap').refresh_candidate_stats(root);value=json.loads(path.read_text())
+            self.assertEqual((value['source_units_total'],value['chunks_total']),(102,123))
 
 if __name__=='__main__':unittest.main(verbosity=2)

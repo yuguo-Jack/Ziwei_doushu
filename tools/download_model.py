@@ -1,5 +1,5 @@
 """Pin, download and check the selected local embedding model."""
-import os
+import hashlib,os
 from pathlib import Path
 import json
 
@@ -15,10 +15,20 @@ if __name__=='__main__':
     repo='Qwen/Qwen3-Embedding-0.6B'
     manifest=ROOT/'manifests/embedding-model.json'
     saved=json.loads(manifest.read_text(encoding='utf-8')) if manifest.exists() else None
-    revision=saved['revision'] if saved and saved.get('model_id')==repo else HfApi().model_info(repo).sha
+    if not saved or saved.get('model_id')!=repo:raise RuntimeError('请先用安装器初始化固定模型清单，或从config复制对应模型与校验清单；不自动选择未知最新版本。')
+    revision=saved['revision']
     print('Pinned model revision:',revision,flush=True)
     snapshot=snapshot_download(repo_id=repo,revision=revision,local_dir=ROOT/'models/Qwen3-Embedding-0.6B'/revision,cache_dir=CACHE/'hub',
         allow_patterns=['*.json','*.safetensors','*.txt','*.model','*.jinja','README.md','1_Pooling/*'],max_workers=3)
+    expected=json.loads((ROOT/'manifests/model-checksums.json').read_text(encoding='utf8'))
+    if expected['revision']!=revision:raise RuntimeError('模型校验清单与固定revision不同。')
+    for row in expected['files']:
+        path=Path(snapshot)/row['path'].replace('\\','/')
+        if not path.is_file() or path.stat().st_size!=row['bytes']:raise RuntimeError('模型文件缺失或大小错误：'+row['path'])
+        digest=hashlib.sha256()
+        with path.open('rb') as file:
+            for block in iter(lambda:file.read(1024*1024),b''):digest.update(block)
+        if digest.hexdigest()!=row['sha256']:raise RuntimeError('模型SHA-256错误：'+row['path'])
     import torch
     from sentence_transformers import SentenceTransformer
     model=SentenceTransformer(snapshot,device='cuda' if torch.cuda.is_available() else 'cpu',
@@ -30,7 +40,7 @@ if __name__=='__main__':
         'max_seq_length':2048,'normalized':True,'dtype':'float32','inference_dtype':'float16' if torch.cuda.is_available() else 'float32',
         'query_prompt':'Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: ',
         'device':'cuda' if torch.cuda.is_available() else 'cpu','offline_load_verified':False,
-        'files':[{'name':str(p.relative_to(snapshot)),'bytes':p.stat().st_size} for p in Path(snapshot).rglob('*') if p.is_file()]}
+        'files':[{'name':p.relative_to(snapshot).as_posix(),'bytes':p.stat().st_size} for p in Path(snapshot).rglob('*') if p.is_file() and '.cache' not in p.relative_to(snapshot).parts]}
     # Explicitly prove that the prepared snapshot loads without network access.
     offline=SentenceTransformer(snapshot,device='cpu',local_files_only=True)
     assert offline.get_embedding_dimension()==1024
