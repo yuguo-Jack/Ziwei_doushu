@@ -38,6 +38,11 @@ class ReleaseTests(unittest.TestCase):
         r=subprocess.run([sys.executable,'-X','utf8',str(ROOT/'skill/ziwei-knowledge-search/scripts/query.py'),'--help'],env=env,capture_output=True,text=True,encoding='utf8')
         self.assertNotEqual(r.returncode,0);self.assertIn('入口不存在',r.stderr)
 
+    def test_console_entry_is_utf8_under_legacy_windows_encoding(self):
+        env=os.environ.copy();env['PYTHONIOENCODING']='cp936'
+        r=subprocess.run([sys.executable,str(ROOT/'ziwei.py'),'--help'],env=env,capture_output=True)
+        self.assertEqual(r.returncode,0);self.assertIn('通过本机',r.stdout.decode('utf8'))
+
     def test_publication_guard_rejects_credentials_and_local_data(self):
         runtime=ROOT/'runtime';runtime.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=runtime) as folder:

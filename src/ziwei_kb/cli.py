@@ -33,6 +33,9 @@ def status():
     return result
 
 def main():
+    # Console entry points also need UTF-8 when Windows inherits a legacy code page.
+    for stream in [sys.stdout,sys.stderr]:
+        if hasattr(stream,'reconfigure'):stream.reconfigure(encoding='utf-8')
     p=argparse.ArgumentParser(description='Ziwei local source-referenced knowledge tools');sub=p.add_subparsers(dest='action',required=True)
     sub.add_parser('status');sub.add_parser('coverage')
     s=sub.add_parser('city');s.add_argument('name')
