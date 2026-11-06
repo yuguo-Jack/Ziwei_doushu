@@ -1,0 +1,8 @@
+{
+  "year": 1992, "month": 6, "day": 15,
+  "clock_hour": 14, "clock_minute": 20,
+  "gender": "female", "longitude": 121.47,
+  "utc_offset_minutes": 480, "dst_adjust_minutes": 0,
+  "brightness": "QS", "leap_month": "split", "late_zi": "next-day",
+  "as_of": "2026-11-05"
+}

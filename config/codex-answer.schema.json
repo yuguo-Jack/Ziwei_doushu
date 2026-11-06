@@ -1,0 +1,11 @@
+{
+  "type":"object",
+  "properties":{
+    "answer":{"type":"string"},
+    "citations":{"type":"array","items":{"type":"integer"}},
+    "follow_ups":{"type":"array","items":{"type":"string"}},
+    "memory":{"type":"string"}
+  },
+  "required":["answer","citations","follow_ups","memory"],
+  "additionalProperties":false
+}

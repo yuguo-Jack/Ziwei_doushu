@@ -1,0 +1,59 @@
+{
+  "model_id": "Qwen/Qwen3-Embedding-0.6B",
+  "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+  "snapshot_path": "models/Qwen3-Embedding-0.6B/97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+  "dimensions": 1024,
+  "max_seq_length": 2048,
+  "normalized": true,
+  "dtype": "float32",
+  "query_prompt": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: ",
+  "device": "not-installed",
+  "offline_load_verified": false,
+  "files": [
+    {
+      "name": "config.json",
+      "bytes": 727
+    },
+    {
+      "name": "config_sentence_transformers.json",
+      "bytes": 215
+    },
+    {
+      "name": "generation_config.json",
+      "bytes": 117
+    },
+    {
+      "name": "merges.txt",
+      "bytes": 1671853
+    },
+    {
+      "name": "model.safetensors",
+      "bytes": 1191586416
+    },
+    {
+      "name": "modules.json",
+      "bytes": 349
+    },
+    {
+      "name": "README.md",
+      "bytes": 17237
+    },
+    {
+      "name": "tokenizer.json",
+      "bytes": 11423705
+    },
+    {
+      "name": "tokenizer_config.json",
+      "bytes": 9706
+    },
+    {
+      "name": "vocab.json",
+      "bytes": 2776833
+    },
+    {
+      "name": "1_Pooling/config.json",
+      "bytes": 313
+    }
+  ],
+  "storage": "workspace-owned regular files; independent of shared Hugging Face cache"
+}

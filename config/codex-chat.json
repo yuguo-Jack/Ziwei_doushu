@@ -1,0 +1,6 @@
+{
+  "model": null,
+  "timeout_seconds": 300,
+  "history_turns": 10,
+  "maximum_parallel_answers": 2
+}

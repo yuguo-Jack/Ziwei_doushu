@@ -1,0 +1,11 @@
+{
+  "family": "Ziwei Display",
+  "source": "Installed NotoSerifSC-VF.ttf, Noto Serif SC",
+  "upstream": "https://github.com/notofonts/noto-cjk",
+  "copyright": "© 2017-2023 Adobe (http://www.adobe.com/).",
+  "license": "SIL Open Font License 1.1; see OFL.txt",
+  "derivative": "Renamed, weight500, subset of UI/guide CJK and Latin glyphs",
+  "characters_requested": 841,
+  "bytes": 139156,
+  "sha256": "f7aeb6ccb23d1db3748ef1a4d98e124edc776dcb35932374edb75b7d9756fe6b"
+}

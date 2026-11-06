@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "repositories": [
+    {"name":"engine","url":"https://github.com/Renhuai123/ziwei-doushu.git","revision":"a600484a49255039d0725f1ba9e11ca81a948f97","directory":"repo","license":"MIT; bundled course excerpts retain separate source terms"},
+    {"name":"tianji","url":"https://github.com/Renhuai123/nihai-tianji-corpus.git","revision":"462faa4c70af40b8b87ad82ffa82a5823a485e94","directory":"sources/tianji-462faa4","license":"data/docs CC BY-NC-SA 4.0; tools MIT"},
+    {"name":"renji","url":"https://github.com/Renhuai123/nihai-renji-corpus.git","revision":"fdafae1ea685756a92a59179fdfa2e6a01379100","directory":"sources/renji","license":"data/docs CC BY-NC-SA 4.0; tools MIT"}
+  ],
+  "case_release": {"repository":"Renhuai123/ziwei-doushu","tag":"v4.0-13d","manifest":"data/MANIFEST.json","checksums":"data/SHA256SUMS.txt"},
+  "notes":"Changes to pins require provenance review, rebuilding the affected knowledge/indexes and regression validation. Dependency repositories are never edited automatically."
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "紫微知识库"
+  short_description: "检索本地紫微斗数原典、课程出处、规则条件与完整命盘解读案例"
+  default_prompt: "使用 $ziwei-knowledge-search 查询紫微斗数知识，结合来源和适用条件回答我的问题。"

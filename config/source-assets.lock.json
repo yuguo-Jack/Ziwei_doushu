@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "files": [
+    {
+      "path": "sources/classics/wikisource-1.json",
+      "bytes": 91508,
+      "sha256": "7d491ef5d531203be8e9426520bdb432458a02117d3e057f3162c0e3858ae494"
+    },
+    {
+      "path": "sources/classics/wikisource-2.json",
+      "bytes": 146745,
+      "sha256": "08b40bf0acf6a917b708bcbba1a7141a389aa977e8c09f13ba0dec1683c65b22"
+    },
+    {
+      "path": "sources/classics/wikisource-3.json",
+      "bytes": 66780,
+      "sha256": "d38826cb3338ee43370e7fe8ee68cf0a76bb0cf7745bd5c0299185847b6f31db"
+    },
+    {
+      "path": "sources/classics/wikisource-4.json",
+      "bytes": 256991,
+      "sha256": "fe349eac9bc1185aa9ee318c561858de346dac60cd74644665590f9f9c6f5fe0"
+    },
+    {
+      "path": "sources/geonames/cities15000.zip",
+      "bytes": 3366174,
+      "sha256": "6e5bb17e2c265df549ca7d8cae1762d8cf4ce04a9edca9426c2cdbf378b42c0e"
+    },
+    {
+      "path": "sources/geonames/countryInfo.txt",
+      "bytes": 32112,
+      "sha256": "79f8f59ea01cbb40438bf1856dd6c2ff201f03f8fc72d0530b2646aaf603ef04"
+    },
+    {
+      "path": "sources/geonames/readme.txt",
+      "bytes": 8843,
+      "sha256": "b1957379b6c1242c700c98ac9a8aa0a09f56c3c0a50ee72175527005f48ef2c5"
+    }
+  ]
+}

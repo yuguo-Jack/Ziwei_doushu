@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=77,<81"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ziwei-local-workbench"
+version = "0.1.0"
+description = "Source-referenced local Ziwei tools, knowledge retrieval and Codex workbench"
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+license = "MIT"
+authors = [{name = "yuguo-Jack"}]
+dependencies = [
+  "numpy==2.5.1", "opencc-python-reimplemented==0.1.7", "zstandard==0.25.0",
+  "beautifulsoup4==4.14.3", "tzdata==2026.1", "markdown-it-py==4.0.0",
+  "CairoSVG==2.9.0", "reportlab==4.4.10", "Pillow==11.3.0"
+]
+
+[project.optional-dependencies]
+semantic = ["torch==2.11.0", "sentence-transformers==5.4.1", "huggingface-hub==1.27.0"]
+dev = ["PyMuPDF==1.27.2.2"]
+
+[project.scripts]
+ziwei = "ziwei_kb.cli:main"
+
+[project.urls]
+Repository = "https://github.com/yuguo-Jack/Ziwei_doushu"
+Issues = "https://github.com/yuguo-Jack/Ziwei_doushu/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
