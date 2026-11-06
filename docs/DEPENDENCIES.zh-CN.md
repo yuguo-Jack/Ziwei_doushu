@@ -19,8 +19,12 @@
 
 两个Node项目都使用`npm ci`。安装器禁用安装脚本，所需构建由明确步骤调用；不会执行上游收费站构建。Windows通过Node直接调用npm-cli.js，避免shell处理带空格路径。
 
-GPU并非必需。显式CPU安装使用官方PyTorch CPU索引；GPU用户先选择适配驱动的官方构建，再使用`--device auto`。模型权重是独立本机资料，不进Git或共享可清理缓存。
+GPU并非必需。显式CPU安装使用官方PyTorch CPU索引，版本直接读取`pyproject.toml`的semantic依赖声明；GPU用户先选择适配驱动的官方构建，再使用`--device auto`。模型权重是独立本机资料，不进Git或共享可清理缓存。
 
 Codex CLI是单独安装并登录的外部程序。默认使用其可用模型，不把账号令牌写入本项目。配置项和环境变量见`.env.example`及`config/codex-chat.json`。模型调用参数由实际安装CLI支持情况决定，升级后需真实验证问答链路。
 
-各包保留其原许可证，见安装包LICENSE/元数据；本项目不重新授权它们。第三方材料和字体见[NOTICE](../THIRD_PARTY_NOTICES.md)。自动依赖更新只开PR，需通过CI和相关真实回归后再合并。
+各包保留其原许可证，见安装包LICENSE/元数据；本项目不重新授权它们。第三方材料和字体见[NOTICE](../THIRD_PARTY_NOTICES.md)。
+
+例行Dependabot版本更新PR已暂停，保持已验证的安装组合；此设置不改变仓库已有的安全告警或安全更新开关。GitHub安全更新使用独立的PR限制，仍可能创建分支，见[官方配置说明](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference#open-pull-requests-limit)。
+
+维护者更新依赖时同步`pyproject.toml`和对应requirements；React与React DOM成套更新，并重新生成`web/package-lock.json`。CI会检查Python声明/安装清单、CPU Torch安装计划、React配套版本及网页锁文件的一致性。版本升级仍需相关真实回归：模型依赖须核对载入与召回，时区依赖须核对历史日期计算，通过后再合入`main`。

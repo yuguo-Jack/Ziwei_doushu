@@ -1,5 +1,5 @@
 """Prepare a source checkout using pinned sources and project-local generated assets."""
-import argparse,datetime,hashlib,json,os,shutil,sqlite3,subprocess,sys
+import argparse,datetime,hashlib,json,os,shutil,sqlite3,subprocess,sys,tomllib
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -22,6 +22,13 @@ def npm_command():
         return [shutil.which('node') or 'node',str(entry)]
     return [found]
 
+def cpu_torch_requirement():
+    with (ROOT/'pyproject.toml').open('rb') as stream:
+        semantic=tomllib.load(stream)['project']['optional-dependencies']['semantic']
+    pins=[entry for entry in semantic if entry.startswith('torch==')]
+    if len(pins)!=1:raise ValueError('pyproject.toml semantic依赖必须声明唯一的torch精确版本。')
+    return pins[0]
+
 def plan(args):
     steps=[]
     def add(name,command,cwd=ROOT,outputs=(),inputs=()):
@@ -30,7 +37,7 @@ def plan(args):
     py=[sys.executable,'-X','utf8']
     if not args.skip_python_deps:
         if not args.lexical_only and args.device=='cpu':
-            add('pytorch-cpu',py+['-m','pip','install','torch==2.11.0','--index-url','https://download.pytorch.org/whl/cpu'])
+            add('pytorch-cpu',py+['-m','pip','install',cpu_torch_requirement(),'--index-url','https://download.pytorch.org/whl/cpu'])
         add('python-dependencies',py+['-m','pip','install','-r','requirements-core.txt' if args.lexical_only else 'requirements-runtime.txt'])
         add('editable-package',py+['-m','pip','install','--no-deps','-e','.'])
     add('native-report-check',py+['-c',"import sys;sys.path.insert(0,'src');from ziwei_kb.diagnostics import report_runtime;print(report_runtime())"])

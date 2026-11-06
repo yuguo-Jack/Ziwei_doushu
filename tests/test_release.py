@@ -1,5 +1,5 @@
 """Publication/migration contracts; no network, real model or user records."""
-import hashlib,importlib.util,json,os,sqlite3,subprocess,sys,tempfile,unittest
+import argparse,hashlib,importlib.util,json,os,re,sqlite3,subprocess,sys,tempfile,tomllib,unittest
 import threading
 from http.server import BaseHTTPRequestHandler
 from unittest.mock import patch
@@ -14,6 +14,53 @@ class ReleaseTests(unittest.TestCase):
     def setUpClass(cls):(ROOT/'runtime').mkdir(exist_ok=True)
 
     def test_bundled_snapshots_match_exact_hashes(self):module('bootstrap').verify_assets()
+
+    def test_python_install_recipes_match_package_metadata(self):
+        def pins(entries):
+            result={}
+            for entry in entries:
+                self.assertRegex(entry,r'^[A-Za-z0-9_.-]+==[^\s;*,<>=!]+$')
+                name,version=entry.split('==');name=re.sub(r'[-_.]+','-',name).lower()
+                self.assertNotIn(name,result,'Duplicate dependency: '+name);result[name]=version
+            return result
+        def requirements(name):
+            entries=[]
+            for line in (ROOT/name).read_text(encoding='utf8').splitlines():
+                line=line.strip()
+                if line and not line.startswith('#'):
+                    entries.extend(requirements(line[3:].strip()) if line.startswith('-r ') else [line])
+            return entries
+        project=tomllib.loads((ROOT/'pyproject.toml').read_text(encoding='utf8'))['project']
+        core=project['dependencies'];optional=project['optional-dependencies']
+        for recipe,declared in [('core',core),('runtime',core+optional['semantic']),('dev',core+optional['dev'])]:
+            with self.subTest(recipe=recipe):
+                self.assertEqual(pins(requirements('requirements-'+recipe+'.txt')),pins(declared))
+
+    def test_cpu_install_follows_changed_torch_declaration(self):
+        bootstrap=module('bootstrap')
+        args=argparse.Namespace(skip_python_deps=False,skip_node_deps=True,lexical_only=False,device='cpu',
+                                profile='core',model_directory='fixture',rebuild=False)
+        with tempfile.TemporaryDirectory(dir=ROOT/'runtime') as folder:
+            root=Path(folder);(root/'config').mkdir()
+            (root/'config/model-checksums.json').write_text('{"files":[]}',encoding='utf8')
+            metadata=root/'pyproject.toml'
+            metadata.write_text('[project.optional-dependencies]\nsemantic = ["torch==9.8.7"]\n',encoding='utf8')
+            with patch.object(bootstrap,'ROOT',root):
+                steps={step['name']:step for step in bootstrap.plan(args)}
+                command=steps['pytorch-cpu']['command'];self.assertIn('torch==9.8.7',command)
+                self.assertEqual(command[-2:],['--index-url','https://download.pytorch.org/whl/cpu'])
+                args.lexical_only=True;self.assertNotIn('pytorch-cpu',{step['name'] for step in bootstrap.plan(args)})
+                metadata.write_text('[project.optional-dependencies]\nsemantic = ["torch>=9.8.7"]\n',encoding='utf8')
+                with self.assertRaisesRegex(ValueError,'torch'):bootstrap.cpu_torch_requirement()
+
+    def test_web_runtime_pair_and_lock_match(self):
+        package=json.loads((ROOT/'web/package.json').read_text(encoding='utf8'))
+        lock=json.loads((ROOT/'web/package-lock.json').read_text(encoding='utf8'));locked=lock['packages']['']
+        for field in ['name','version','dependencies','devDependencies']:
+            self.assertEqual(package[field],locked[field],field)
+        self.assertEqual(package['dependencies']['react'],package['dependencies']['react-dom'])
+        for name in ['react','react-dom']:
+            self.assertEqual(package['dependencies'][name],lock['packages']['node_modules/'+name]['version'])
 
     def test_pins_stay_inside_project_and_are_exact(self):
         pins=json.loads((ROOT/'config/sources.lock.json').read_text())['repositories']

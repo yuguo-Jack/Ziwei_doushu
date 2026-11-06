@@ -8,4 +8,4 @@
 4. 运行`python -X utf8 tools/test_codex_review.py`、`python -X utf8 -m unittest discover -s tests -v`及网页构建；涉及数据或计算时再运行对应真实构建/回归。
 5. 提交前运行`python -X utf8 scripts/check_release.py`。不得提交真实出生资料、账号文件、数据库、模型、日志或导出。
 
-更新依赖时一并维护requirements、pyproject及npm lock；更新数据版本时修改固定清单，重建受影响部分并记录差异。PR说明具体触发问题、修改后的行为、验证和保留限制。自动依赖更新也需通过检查，不自动合并。
+更新依赖时一并维护requirements、pyproject及npm lock；React和React DOM成套升级。例行版本更新PR已暂停，安全更新仍按仓库已有设置处理，需审查验证后合并；临时分支在PR合并或关闭后清理。更新数据版本时修改固定清单，重建受影响部分并记录差异。PR说明具体触发问题、修改后的行为、验证和保留限制。

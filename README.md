@@ -30,6 +30,8 @@ Local, source-referenced Ziwei tools and retrieval with a Codex-powered workbenc
 
 这是安装在**使用者自己电脑上**的项目。GitHub提供源码和安装文档；每位使用者完成安装、启动自己的服务后，再用浏览器访问自己的本机地址。项目目前没有公共在线演示站点。
 
+**安装使用默认的 `main` 分支即可，其中包含完整功能。** `dependabot/*` 等临时分支是待验证的依赖更新建议，无需切换或分别安装。
+
 先准备 **Python 3.12、Node.js 24+、Git**。PNG/PDF 导出需要 Cairo 和中文字体，Windows 配置见[安装说明](docs/INSTALLATION.zh-CN.md#系统依赖)。GPU 可选；CPU 可以运行嵌入模型。
 
 **完整安装并启动（CPU通用方式）：** 只需先克隆本仓库，下面的安装器会继续获取第三方来源和模型，无需手动逐个克隆。
