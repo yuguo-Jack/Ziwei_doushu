@@ -167,3 +167,25 @@ python -X utf8 scripts/bootstrap.py --profile full --device cpu --install-skill
 项目新增代码使用[MIT](LICENSE)。上游MIT代码、课程CC BY-NC-SA 4.0、案例声明CC BY 4.0及其中引文例外、GeoNames CC BY 4.0、古籍电子版本条款、字体OFL等**分别保留**，详见[第三方说明](THIRD_PARTY_NOTICES.md)。代码MIT不代表所有知识材料可商业使用。
 
 本项目基于[Renhuai123/ziwei-doushu](https://github.com/Renhuai123/ziwei-doushu)及公开语料构建，与收费网站无隶属关系。未恢复其私有评分、闭源专属断语和小限子层，也未取得《紫微斗数全集》可靠完整底本。用于传统文化资料研读；计算和检索验收不等于预测有效性认证。
+
+## 欢迎提需求与反馈
+
+希望这个项目能在大家的实际使用中越做越好。**无论你是否懂代码，都欢迎提需求、报问题，或者告诉我哪里用着不顺手。** 安装步骤、知识库资料、排盘工具、Codex问答和网页体验，都可以聊。
+
+- [我有功能建议](https://github.com/yuguo-Jack/Ziwei_doushu/issues/new?template=feature_request.md)：说说你在什么场景下使用、目前哪里不方便，以及希望达到什么效果。不用先写完整方案，一个具体想法就很有帮助。
+- [我遇到了问题](https://github.com/yuguo-Jack/Ziwei_doushu/issues/new?template=bug_report.md)：留下操作步骤、预期结果和实际表现，方便复现和改进。
+- [看看已有需求与讨论](https://github.com/yuguo-Jack/Ziwei_doushu/issues)：有相同需求可以补充自己的场景，或点个赞，让维护者了解大家的需要。
+
+文档中的疑惑、资料出处的补充与纠错也很欢迎。你的反馈会帮助确定后续改进方向；愿意参与实现的朋友可参考[贡献说明](CONTRIBUTING.md)。
+
+## 支持项目
+
+如果这个项目对你有帮助，欢迎通过支付宝自愿打赏，支持后续维护、资料整理和体验改进。也欢迎Star、分享给需要的朋友；无论是否打赏，都欢迎继续提需求。
+
+<p align="center">
+  <a href="docs/assets/alipay-support.jpg">
+    <img src="docs/assets/alipay-support.jpg" alt="支付宝自愿打赏收款码，收款方Jack，点击查看原图" width="280" />
+  </a>
+  <br />
+  支付宝扫码支持 · 点击图片可查看原图
+</p>
