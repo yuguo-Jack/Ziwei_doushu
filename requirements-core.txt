@@ -1,5 +1,5 @@
 # Python 3.12; deterministic tools, lexical retrieval, web and report generation.
-numpy==2.5.1
+numpy==2.5.4
 opencc-python-reimplemented==0.1.7
 zstandard==0.25.0
 beautifulsoup4==4.14.3
