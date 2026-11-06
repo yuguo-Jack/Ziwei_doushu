@@ -1,6 +1,6 @@
 # 紫微研习工具：从直接提问到备份
 
-以下命令默认在项目根目录执行。先按[安装说明](docs/INSTALLATION.zh-CN.md)完成所需范围；首次公开版本0.1.0。
+以下命令默认在项目根目录执行。先按[安装说明](docs/INSTALLATION.zh-CN.md)完成安装；要体验全部功能，用`full`语义安装并通过`doctor --experience`。
 
 ## 1. 最省事的用法：直接跟 Codex 说
 

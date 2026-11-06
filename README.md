@@ -38,11 +38,13 @@ Local, source-referenced Ziwei tools and retrieval with a Codex-powered workbenc
 git clone https://github.com/yuguo-Jack/Ziwei_doushu.git
 cd Ziwei_doushu
 python -X utf8 scripts/bootstrap.py --profile full --device cpu --install-skill
-python -X utf8 ziwei.py doctor
+npm install --global @openai/codex
+codex login
+python -X utf8 ziwei.py doctor --experience
 python -X utf8 ziwei.py serve --port 8765
 ```
 
-安装器显示“准备完成”、`doctor`检查通过，并且最后的`serve`命令保持运行后，在**这台电脑的浏览器地址栏输入**：
+已有兼容的Codex CLI可跳过npm安装，已有登录可跳过登录。`doctor --experience`检查完整资料、实际语义检索和排盘、案例、同盘、网页资源、技能绑定及Codex接口/登录；不发起模型回答。检查通过后，保持`serve`运行，在**这台电脑的浏览器地址栏输入**：
 
 ```text
 http://127.0.0.1:8765/
@@ -62,7 +64,7 @@ http://127.0.0.1:8765/
 
 古籍和GeoNames小型固定快照已经随本仓库提供。安装器还会安装Python/Node依赖，构建核心知识库、语义向量、案例候选库、同盘索引和网页，并安装Codex技能。完整固定版本可查[来源清单](config/sources.lock.json)和[模型配置](config/embedding-model.json)；[安装说明](docs/INSTALLATION.zh-CN.md#完整安装自动获取的仓库与模型)列出了各项用途与手动准备项。
 
-Qwen3-Embedding-0.6B负责在本地找资料，回答由Codex生成。要在网页直接提问、解读和追问，还需按下方“接通网页里的Codex”**单独安装Codex CLI，并登录使用者自己的账号**；安装器不会代为登录。
+Qwen3-Embedding-0.6B负责在本地找资料，回答由Codex生成。上面的完整流程包含两者；**Codex CLI需单独安装，账号由使用者自己登录**。
 
 完整安装建议至少留 **20GB** 空间；首次可能需要数十分钟到数小时。下载与构建会保留已完成阶段，失败后修复原因并重跑同一命令。想先预览自动执行的步骤，可在安装命令末尾加`--dry-run`。
 
@@ -80,15 +82,16 @@ python -X utf8 scripts/bootstrap.py --profile core --lexical-only --install-skil
 
 ### 接通网页里的 Codex
 
-按 [Codex CLI 官方说明](https://developers.openai.com/codex/cli/)安装并登录，在终端检查：
+快速开始已包含[Codex CLI安装和登录](https://developers.openai.com/codex/cli/)。单独排查连接时运行：
 
 ```powershell
-codex login
 codex login status
 python -X utf8 ziwei.py chat status
 ```
 
 网页“问答研读”会使用当前账号额度。无需本网站 API Key，无需再下载聊天模型。**Codex 回答需要联网**；问题、选定命盘、相关引文与有限前文会交给模型服务。资料库、索引与嵌入模型留在本机。
+
+首次体验可在网页问“三方四正是什么意思？给出处”，再追问“空宫借星为什么不等于同宫？”，点击引用核对原文。终端也可用`chat ask`实答，详见[首次验收](docs/INSTALLATION.zh-CN.md#完整体验验收)。不同账号的可用模型和额度会影响回答；功能与固定资料可复现，个人记录、聊天历史和逐字回答不随仓库复制。
 
 ![实际Codex多轮研读，使用虚构示例](docs/screenshots/chat-desktop.jpg)
 

@@ -3,3 +3,7 @@
 torch==2.11.0
 sentence-transformers==5.4.1
 huggingface-hub==1.27.0
+# Keep tokenizer/model-loading behavior aligned with the verified local index.
+transformers==5.5.4
+tokenizers==0.22.2
+safetensors==0.7.0

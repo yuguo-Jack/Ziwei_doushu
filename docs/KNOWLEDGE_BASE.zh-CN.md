@@ -33,45 +33,22 @@ core模式同样取得课程和古籍，只省略大型旧案例/候选与同盘
 
 各阶段日志显示在终端，状态和输入指纹在`runtime/`。本机覆盖清单在`manifests/`，它反映实际构建结果，不随Git伪装成已安装数据库。
 
-## 手动分阶段构建
+## 构建阶段与维护入口
 
-先完成Python、Node和原生依赖。以下命令从根目录执行；调用TypeScript的两条命令需临时进入`repo/`。
+安装、补齐和重建统一使用`bootstrap.py`，避免手抄一组工具命令漏建目录、清单或后续索引。用`--dry-run`查看当前版本实际命令、顺序和输入输出；`--workers 1`同时降低案例建库与候选抽取并发；`--rebuild`要求重跑构建（年度案例仍会校验后复用）。
 
-```powershell
-python -X utf8 scripts/fetch_sources.py
-cd repo
-npm ci --ignore-scripts
-node --import ./node_modules/tsx/dist/loader.mjs ../tools/extract_engine.ts
-cd ..
-python -X utf8 tools/build_knowledge.py
-python -X utf8 tools/collect_geography.py
-python -X utf8 tools/download_model.py
-python -X utf8 tools/build_embeddings.py
-```
+| 阶段 | 实现工具 | 保留的契约 |
+|---|---|---|
+| 固定仓库与公开引擎 | `fetch_sources.py`、`extract_engine.ts` | 精确commit、现有改动不被重置 |
+| 核心原文与城市 | `build_knowledge.py`、`import_renji.py`、`collect_geography.py` | 原字形、领域、来源、定位、条件和固定快照 |
+| 模型与向量 | `download_model.py`、`build_embeddings.py` | 从`config/`读固定模型和校验值，生成实际`manifests/`；无需手工复制清单 |
+| 原始案例与分片 | `download_assets.py`、`build_cases.py` | 每包SHA、完整出生键、去重主题逐字还原核验 |
+| 隔离候选 | `extract_dataset_references.py`、`import_dataset_references.py` | 来源例盘、主题和未知条件；不进入默认语义索引 |
+| 同盘 | `build_twins.ts`、`pack_twins.py`、`verify_twins.ts` | 命身与14主星16维筛选，再逐盘核对原生完整结构 |
 
-模型工具需要先有`manifests/embedding-model.json`与`model-checksums.json`。安装器会从`config/`初始化；手工新建工作区时复制这两份固定清单，不从未知最新模型自动选择。默认模型约1.21GB，CPU可运行；GPU配置由PyTorch决定。
+模型约1.21GB；已有完整文件先核SHA后离线复用，配置改变则按新pin准备，旧权重保留。向量长度审计随索引保存，复用索引时可恢复审计清单。`manifests/`表示本机实际准备结果，不作为下一次下载选择的来源。
 
-完整旧案例/候选：
-
-```powershell
-python -X utf8 tools/download_assets.py
-python -X utf8 tools/build_cases.py --workers 3
-python -X utf8 tools/extract_dataset_references.py
-python -X utf8 tools/import_dataset_references.py
-```
-
-下载逐包核验发布大小与SHA；案例按完整出生键保存，按主题分段去重并验证逐字还原；候选段保留来源例盘与主题。不存在精确出生键时不会用邻近生日替代。当前QS盘面与旧XD2案例口径分开返回。
-
-同盘索引：
-
-```powershell
-cd repo
-node --import ./node_modules/tsx/dist/loader.mjs ../tools/build_twins.ts
-cd ..
-python -X utf8 tools/pack_twins.py
-```
-
-此索引先匹配命身与14主星的16维结构，再由`verify_twins.ts`逐盘核对原生完整结构。它不是实际人口档案，同盘不等于人生相同。
+不存在精确出生键时不使用邻近生日替代，当前QS与旧XD2口径分别保留；同盘索引是合成出生配置，不是实际人口档案。开发者单独调用底层工具时需负责全部前置阶段与范围标记，最终仍用`doctor --experience`核对完整安装。
 
 ## 质量与条件
 

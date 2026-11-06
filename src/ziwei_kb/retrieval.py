@@ -2,19 +2,22 @@ import json,os,subprocess,sys,time,urllib.request,urllib.error,hashlib
 from functools import lru_cache
 import numpy as np
 from .common import ROOT,connect,tokenize,infer_namespace,read_json,normalize,model_path,embedding_contract,installation
+from .local_http import open_local
 
 def service_health():
     try:
-        with urllib.request.urlopen('http://127.0.0.1:8788/health',timeout=.5) as r:result=json.load(r)
-        return result if result.get('service')=='ziwei-query-encoder' and result.get('workspace')==str(ROOT) else None
+        with open_local('http://127.0.0.1:8788/health',timeout=.5) as r:result=json.load(r)
+        return result if result.get('service')=='ziwei-query-encoder' else None
     except Exception:return None
 
 def query_vectors(queries):
     (ROOT/'logs').mkdir(parents=True,exist_ok=True)
     health=service_health()
     spec=read_json(ROOT/'manifests/embedding-model.json');expected_contract=embedding_contract(spec)
-    if health and health.get('contract')!=expected_contract:
-        raise RuntimeError('查询编码器仍使用旧模型路径或配置；等待5分钟闲置退出，或按维护文档重启本工作区编码器。')
+    def validate_health(health):
+        if health.get('workspace')!=str(ROOT):raise RuntimeError('本机编码器正在服务另一个工作区；请等待其闲置退出或按维护文档核对归属后停止，再查询当前目录。')
+        if health.get('contract')!=expected_contract:raise RuntimeError('查询编码器仍使用旧模型路径或配置；等待5分钟闲置退出，或按维护文档重启本工作区编码器。')
+    if health:validate_health(health)
     if not health:
         log=(ROOT/'logs/query-encoder.log').open('a',encoding='utf-8')
         flags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0
@@ -22,12 +25,13 @@ def query_vectors(queries):
         subprocess.Popen([sys.executable,'-X','utf8','-m','ziwei_kb.embedding_service'],cwd=ROOT,env=env,
             stdin=subprocess.DEVNULL,stdout=log,stderr=log,creationflags=flags);log.close()
         for _ in range(80):
-            if service_health():break
+            health=service_health()
+            if health:validate_health(health);break
             time.sleep(.1)
         else:raise RuntimeError('本地查询编码器未能启动；检查 logs/query-encoder.log 或端口8788。')
     request=urllib.request.Request('http://127.0.0.1:8788/encode',data=json.dumps({'queries':queries},ensure_ascii=False).encode('utf-8'),headers={'Content-Type':'application/json'},method='POST')
     try:
-        with urllib.request.urlopen(request,timeout=90) as r:result=json.load(r)
+        with open_local(request,timeout=90) as r:result=json.load(r)
     except urllib.error.HTTPError as exc:
         try:message=json.loads(exc.read().decode('utf-8')).get('error',str(exc))
         except Exception:message=str(exc)

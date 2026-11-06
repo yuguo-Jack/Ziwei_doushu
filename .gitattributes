@@ -20,3 +20,4 @@
 /sources/geonames/cities15000.zip -text
 /sources/geonames/readme.txt -text
 /sources/geonames/countryInfo.txt -text
+/tests/fixtures/retrieval-questions.json -text

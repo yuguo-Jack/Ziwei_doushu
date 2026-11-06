@@ -17,13 +17,20 @@ def cli_command():
         package=folder/'node_modules/@openai/codex'
         for target in ['x86_64-pc-windows-msvc','aarch64-pc-windows-msvc']:
             name='codex-win32-x64' if target.startswith('x86_64') else 'codex-win32-arm64'
-            for vendor in [package/f'node_modules/@openai/{name}/vendor',package/'vendor']:
+            for vendor in [package/f'node_modules/@openai/{name}/vendor',folder/f'node_modules/@openai/{name}/vendor',package/'vendor']:
                 candidate=vendor/target/'bin/codex.exe'
                 if candidate.is_file():return [str(candidate)]
         entry=package/'bin/codex.js'
         if entry.is_file() and shutil.which('node'):return [shutil.which('node'),str(entry)]
         if os.name!='nt':return [wrapper]
     raise RuntimeError('未找到Codex CLI，请先在本机安装并登录。')
+
+def check_cli_support(command):
+    result=subprocess.run(command+['exec','--help'],capture_output=True,text=True,encoding='utf-8',timeout=8,
+        creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0)
+    required=['--ignore-user-config','--ephemeral','--skip-git-repo-check','--sandbox','--disable','--output-schema','--json']
+    if result.returncode or any(flag not in result.stdout for flag in required):
+        raise RuntimeError('当前Codex CLI版本不支持完整问答接口，请按安装说明更新后重试。')
 
 class ProcessJob:
     """Windows closes this job when the parent service exits, also ending its children."""

@@ -1,5 +1,8 @@
 """Publication/migration contracts; no network, real model or user records."""
 import hashlib,importlib.util,json,os,sqlite3,subprocess,sys,tempfile,unittest
+import threading
+from http.server import BaseHTTPRequestHandler
+from unittest.mock import patch
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -7,6 +10,9 @@ def module(name):
     spec=importlib.util.spec_from_file_location(name,ROOT/'scripts'/(name+'.py'));value=importlib.util.module_from_spec(spec);spec.loader.exec_module(value);return value
 
 class ReleaseTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):(ROOT/'runtime').mkdir(exist_ok=True)
+
     def test_bundled_snapshots_match_exact_hashes(self):module('bootstrap').verify_assets()
 
     def test_pins_stay_inside_project_and_are_exact(self):
@@ -60,5 +66,107 @@ class ReleaseTests(unittest.TestCase):
             path=root/'manifests/knowledge.json';path.write_text(json.dumps({'source_units':100,'chunks':120}),encoding='utf8')
             module('bootstrap').refresh_candidate_stats(root);value=json.loads(path.read_text())
             self.assertEqual((value['source_units_total'],value['chunks_total']),(102,123))
+
+    def test_memory_and_rebuild_options_reach_candidate_workers(self):
+        r=subprocess.run([sys.executable,'-X','utf8',str(ROOT/'scripts/bootstrap.py'),'--workers','1','--rebuild','--dry-run'],capture_output=True,text=True,encoding='utf8',check=True)
+        steps={x['name']:x for x in json.loads(r.stdout)['steps']}
+        for name in ['case-shards','candidate-extraction']:
+            command=steps[name]['command'];self.assertEqual(command[command.index('--workers')+1],'1')
+        self.assertIn('--rebuild',steps['candidate-extraction']['command'])
+        self.assertIn('manifests/embedding-model.json',steps['embedding-model']['outputs'])
+
+    def test_web_readiness_rejects_missing_compiled_asset(self):
+        sys.path.insert(0,str(ROOT/'src'))
+        from ziwei_kb import diagnostics
+        with tempfile.TemporaryDirectory(dir=ROOT/'runtime') as folder:
+            root=Path(folder);dist=root/'web/dist';(dist/'fonts').mkdir(parents=True)
+            (dist/'index.html').write_text('<script src="/assets/main.js"></script>',encoding='utf8')
+            (dist/'fonts/ziwei-serif.woff2').write_bytes(b'fixture')
+            with patch.object(diagnostics,'ROOT',root):
+                with self.assertRaisesRegex(AssertionError,'main.js'):diagnostics.web_assets()
+                (dist/'assets').mkdir();(dist/'assets/main.js').write_text('fixture',encoding='utf8')
+                self.assertTrue(diagnostics.web_assets()['available'])
+
+    def test_clean_lexical_doctor_needs_no_fake_model_manifest(self):
+        sys.path.insert(0,str(ROOT/'src'))
+        from ziwei_kb import diagnostics
+        with tempfile.TemporaryDirectory(dir=ROOT/'runtime') as folder:
+            root=Path(folder);(root/'config').mkdir();(root/'config/embedding-model.json').write_bytes((ROOT/'config/embedding-model.json').read_bytes())
+            with patch.object(diagnostics,'ROOT',root),patch.object(diagnostics,'installation',return_value={'profile':'core','semantic':False,'web':True}):
+                result=diagnostics.doctor()
+            checks={x['name']:x for x in result['checks']}
+            self.assertTrue(checks['workspace_model_regular_files']['passed'])
+            self.assertFalse(checks['web_build']['passed']);self.assertFalse(result['passed'])
+
+    def test_old_codex_is_not_reported_as_connected(self):
+        sys.path.insert(0,str(ROOT/'src'))
+        from ziwei_kb import codex_chat
+        old=subprocess.CompletedProcess(['fixture'],0,stdout='old help',stderr='private diagnostic')
+        with patch.object(codex_chat,'_auth_cache',None),patch.object(codex_chat,'cli_command',return_value=['fixture']),patch('ziwei_kb.codex_process.subprocess.run',return_value=old):
+            result=codex_chat.status()
+        self.assertFalse(result['ready']);self.assertIn('版本',result['message']);self.assertNotIn('private',json.dumps(result))
+
+    def test_legacy_model_checksum_path_separator_is_compatible(self):
+        sys.path.insert(0,str(ROOT/'src'))
+        from ziwei_kb import diagnostics
+        with tempfile.TemporaryDirectory(dir=ROOT/'runtime') as folder:
+            root=Path(folder);snapshot=root/'models/test';(snapshot/'1_Pooling').mkdir(parents=True)
+            data=b'fixture';(snapshot/'1_Pooling/config.json').write_bytes(data)
+            spec=json.loads((ROOT/'config/embedding-model.json').read_text(encoding='utf8'));spec['snapshot_path']='models/test'
+            row={'path':'1_Pooling/config.json','bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()}
+            expected={'revision':spec['revision'],'files':[row]}
+            legacy={'revision':spec['revision'],'files':[{**row,'path':'1_Pooling\\config.json'}]}
+            for name,value in [('config/embedding-model.json',spec),('manifests/embedding-model.json',spec),('config/model-checksums.json',expected),('manifests/model-checksums.json',legacy)]:
+                path=root/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(value),encoding='utf8')
+            with patch.object(diagnostics,'ROOT',root),patch.object(diagnostics,'model_path',return_value=snapshot),patch.object(diagnostics,'installation',return_value={'profile':'core','semantic':True}):
+                result=diagnostics.doctor()
+            self.assertTrue(next(x for x in result['checks'] if x['name']=='workspace_model_regular_files')['passed'])
+
+    def test_codex_native_executable_in_hoisted_npm_layout(self):
+        sys.path.insert(0,str(ROOT/'src'))
+        from ziwei_kb import codex_process
+        with tempfile.TemporaryDirectory(dir=ROOT/'runtime') as folder:
+            root=Path(folder);wrapper=root/'codex.cmd';wrapper.write_text('fixture',encoding='utf8')
+            native=root/'node_modules/@openai/codex-win32-x64/vendor/x86_64-pc-windows-msvc/bin/codex.exe'
+            native.parent.mkdir(parents=True);native.write_bytes(b'fixture')
+            with patch.dict(os.environ,{'ZIWEI_CODEX_CLI':''}),patch.object(codex_process.shutil,'which',side_effect=lambda name:str(wrapper) if name=='codex.cmd' else None):
+                self.assertEqual(codex_process.cli_command(),[str(native)])
+
+    def test_frozen_retrieval_fixture_is_published_unchanged(self):
+        path=ROOT/'tests/fixtures/retrieval-questions.json'
+        self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(),'73270adb2422f9533c968366d39f2339d39906d7a00d19db4234dac4c37838df')
+        rows=json.loads(path.read_text(encoding='utf8'))
+        self.assertEqual(len(rows),60);self.assertEqual(sum(x['type']=='retrieval' for x in rows),50)
+
+    def test_loopback_port_is_exclusive_and_ignores_external_proxy(self):
+        sys.path.insert(0,str(ROOT/'src'))
+        from ziwei_kb.local_http import LocalHTTPServer,open_local
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self,*args):pass
+            def do_GET(self):
+                self.send_response(200);self.end_headers();self.wfile.write(b'local-only')
+        server=LocalHTTPServer(('127.0.0.1',0),Handler)
+        thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
+        try:
+            with self.assertRaises(OSError):LocalHTTPServer(server.server_address,Handler)
+            with patch.dict(os.environ,{'http_proxy':'http://127.0.0.1:1','HTTP_PROXY':'http://127.0.0.1:1','no_proxy':'','NO_PROXY':''}):
+                with open_local('http://127.0.0.1:'+str(server.server_port),timeout=2) as response:self.assertEqual(response.read(),b'local-only')
+        finally:server.shutdown();server.server_close();thread.join(timeout=2)
+
+    def test_foreign_encoder_is_rejected_without_spawning_another(self):
+        sys.path.insert(0,str(ROOT/'src'))
+        from ziwei_kb import retrieval
+        spec=json.loads((ROOT/'config/embedding-model.json').read_text(encoding='utf8'))
+        with patch.object(retrieval,'service_health',return_value={'workspace':str(ROOT.parent),'contract':'foreign'}),patch.object(retrieval,'read_json',return_value=spec),patch.object(retrieval.subprocess,'Popen') as spawn:
+            with self.assertRaisesRegex(RuntimeError,'另一个工作区'):retrieval.query_vectors(['三方四正'])
+            spawn.assert_not_called()
+
+    def test_missing_browser_conversation_has_a_recoverable_response(self):
+        sys.path.insert(0,str(ROOT/'src'))
+        from ziwei_kb import codex_chat,webapp
+        with tempfile.TemporaryDirectory(dir=ROOT/'runtime') as folder,patch.object(codex_chat,'DB',Path(folder)/'chat.sqlite'):
+            result=webapp.dispatch({'action':'chat-get','session_id':'0'*32})
+            self.assertFalse(result['found']);self.assertIn('当前工作区',result['message'])
+            with self.assertRaises(codex_chat.ConversationNotFound):codex_chat.get_conversation('0'*32)
 
 if __name__=='__main__':unittest.main(verbosity=2)

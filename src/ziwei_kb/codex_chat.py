@@ -3,13 +3,15 @@ import datetime,json,os,re,sqlite3,subprocess,threading,time,uuid
 from pathlib import Path
 from .common import ROOT,ManagedConnection,read_json
 from .chat_context import validate_scope,prepare_context,answer_prompt,scope_label
-from .codex_process import cli_command,run_codex
+from .codex_process import cli_command,check_cli_support,run_codex
 
 DB=ROOT/'runtime/chat.sqlite'
 BUSY=('queued','preparing','generating')
 PHASES={'queued':'等待开始','preparing':'正在核对盘面和原文','generating':'Codex正在组织解读','succeeded':'回答完成','failed':'本次未完成','cancelled':'已停止'}
 _slots=threading.BoundedSemaphore(max(1,min(4,read_json(ROOT/'config/codex-chat.json').get('maximum_parallel_answers',2))))
 _auth_lock=threading.Lock();_auth_cache=None
+
+class ConversationNotFound(ValueError):pass
 
 def now():return datetime.datetime.now(datetime.timezone.utc).isoformat()
 def identifier(value):
@@ -65,10 +67,12 @@ def status():
     with _auth_lock:
         if _auth_cache and _auth_cache[1]['ready'] and time.monotonic()-_auth_cache[0]<30:return dict(_auth_cache[1])
         try:
-            command=cli_command();result=subprocess.run(command+['login','status'],capture_output=True,text=True,encoding='utf-8',timeout=8,creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0)
+            command=cli_command();check_cli_support(command)
+            result=subprocess.run(command+['login','status'],capture_output=True,text=True,encoding='utf-8',timeout=8,creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0)
             ready=result.returncode==0
             response={'available':True,'ready':ready,'message':'已连接当前登录的Codex' if ready else '请先在本机完成Codex登录，再重试。'}
-        except (OSError,RuntimeError,subprocess.TimeoutExpired):response={'available':False,'ready':False,'message':'尚未连接Codex，请检查本机安装和登录。'}
+        except RuntimeError as error:response={'available':False,'ready':False,'message':str(error)}
+        except (OSError,subprocess.TimeoutExpired):response={'available':False,'ready':False,'message':'尚未连接Codex，请检查本机安装和登录。'}
         _auth_cache=(time.monotonic(),response);return dict(response)
 
 def list_conversations(offset=0,limit=20):
@@ -93,7 +97,7 @@ def get_conversation(session_id):
     with connection() as conn:
         recover_orphans(conn)
         session=conn.execute('SELECT * FROM conversations WHERE id=?',(session_id,)).fetchone()
-        if not session:raise ValueError('这段对话不存在，可能已被删除。')
+        if not session:raise ConversationNotFound('这段对话不存在，可能已被删除。')
         rows=conn.execute('SELECT * FROM turns WHERE conversation_id=? ORDER BY rowid',(session_id,)).fetchall()
     messages=[]
     for row in rows:

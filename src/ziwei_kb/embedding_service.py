@@ -1,6 +1,7 @@
 """On-demand localhost-only query encoder, released after idle time."""
 import os,json,time,threading,sys
-from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler
+from .local_http import LocalHTTPServer
 from .common import ROOT,read_json,model_path,embedding_contract
 os.environ['HF_HUB_OFFLINE']='1';os.environ['TRANSFORMERS_OFFLINE']='1';os.environ['HF_HUB_DISABLE_TELEMETRY']='1';os.environ['TOKENIZERS_PARALLELISM']='false'
 PORT=8788
@@ -48,7 +49,7 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as exc:self.send({'error':str(exc)},400)
 
 def main():
-    server=ThreadingHTTPServer(('127.0.0.1',PORT),Handler)
+    server=LocalHTTPServer(('127.0.0.1',PORT),Handler)
     def idle():
         while True:
             time.sleep(15)

@@ -37,6 +37,8 @@ if __name__=='__main__':
             'vector_file':'vectors.npy','row_map':'rows.json','seconds':round(time.perf_counter()-started,2),'device':device,
             'vectors_sha256':hashlib.sha256((out/'vectors.npy').read_bytes()).hexdigest(),'token_length_audit':length_audit}
         write_json(out/'manifest.json',manifest)
-    else:manifest=read_json(out/'manifest.json')
+    else:
+        manifest=read_json(out/'manifest.json')
+        write_json(ROOT/'manifests/embedding-token-lengths.json',manifest['token_length_audit'])
     write_json(ROOT/'indexes/current.json',{'generation':generation,'manifest_path':str((out/'manifest.json').relative_to(ROOT))})
     print(json.dumps({k:v for k,v in manifest.items() if k!='model'},ensure_ascii=False),flush=True)

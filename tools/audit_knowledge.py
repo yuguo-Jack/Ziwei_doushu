@@ -5,7 +5,7 @@ ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'src'))
 from ziwei_kb.common import connect,read_json,write_json,sha
 from ziwei_kb.cases import lookup
 
-OUT=ROOT/'evaluations/maintenance-review';OUT.mkdir(exist_ok=True)
+OUT=ROOT/'evaluations/maintenance-review';OUT.mkdir(parents=True,exist_ok=True)
 def digest(path):
     value=hashlib.sha256()
     with path.open('rb') as file:

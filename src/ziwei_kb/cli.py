@@ -58,7 +58,7 @@ def main():
     s=sub.add_parser('browse');s.add_argument('source_id');s.add_argument('--offset',type=int,default=0);s.add_argument('--limit',type=int,default=20);s.add_argument('--filter',default='')
     s=sub.add_parser('personal');s.add_argument('operation',choices=['list','get','save','delete','backup']);s.add_argument('--kind',choices=['profile','note','bookmark','session','liuren']);s.add_argument('--id');s.add_argument('--title');s.add_argument('--input-file');s.add_argument('--offset',type=int,default=0);s.add_argument('--limit',type=int,default=100);s.add_argument('--query',default='');s.add_argument('--output-file')
     s=sub.add_parser('serve');s.add_argument('--port',type=int,default=8765)
-    s=sub.add_parser('doctor');s.add_argument('--deep',action='store_true')
+    s=sub.add_parser('doctor');s.add_argument('--deep',action='store_true');s.add_argument('--experience',action='store_true',help='检查完整本地功能、网页、技能和Codex连接；不发起模型回答')
     s=sub.add_parser('chat',help='通过本机Codex CLI进行有出处的连续研读')
     s.add_argument('operation',choices=['status','list','get','ask','cancel','retry','delete','export','backup']);s.add_argument('question',nargs='?')
     s.add_argument('--session');s.add_argument('--turn');g=s.add_mutually_exclusive_group();g.add_argument('--input-file');g.add_argument('--input-json');g.add_argument('--stdin',action='store_true');g.add_argument('--profile')
@@ -73,7 +73,7 @@ def main():
         if args.action in ['status','coverage']:result=status()
         elif args.action=='doctor':
             from .diagnostics import doctor
-            result=doctor(args.deep)
+            result=doctor(args.deep,args.experience,progress=lambda name:print('正在检查：'+name,file=sys.stderr,flush=True))
         elif args.action=='serve':
             from .webapp import serve
             serve(args.port);return 0

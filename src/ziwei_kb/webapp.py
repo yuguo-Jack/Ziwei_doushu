@@ -1,6 +1,7 @@
 """Loopback-only workbench. The embedding model retrieves; Codex remains the answerer."""
 import json,mimetypes,urllib.parse
-from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler
+from .local_http import LocalHTTPServer
 from .common import ROOT,TOPICS
 
 def dispatch(data):
@@ -30,7 +31,9 @@ def _dispatch(data):
         from . import codex_chat
         if action=='chat-status':return codex_chat.status()
         if action=='chat-list':return codex_chat.list_conversations(data.get('offset',0),limit)
-        if action=='chat-get':return codex_chat.get_conversation(data.get('session_id'))
+        if action=='chat-get':
+            try:return codex_chat.get_conversation(data.get('session_id'))
+            except codex_chat.ConversationNotFound:return {'found':False,'message':'之前的研读记录不在当前工作区，可新建研读或选择已有记录。'}
         if action=='chat-send':return codex_chat.submit(question,data.get('scope'),data.get('session_id'),data.get('request_id'))
         if action=='chat-cancel':return codex_chat.cancel(data.get('turn_id'))
         if action=='chat-retry':return codex_chat.retry(data.get('turn_id'))
@@ -120,7 +123,7 @@ class Handler(BaseHTTPRequestHandler):
 def serve(port=8765):
     if not 1024<=port<=65535:raise ValueError('port范围1024–65535。')
     if not (ROOT/'web/dist/index.html').exists():raise RuntimeError('本地界面未构建，请在web目录运行npm run build。')
-    server=ThreadingHTTPServer(('127.0.0.1',port),Handler)
+    server=LocalHTTPServer(('127.0.0.1',port),Handler)
     print(f'Ziwei workbench: http://127.0.0.1:{port}',flush=True)
     try:server.serve_forever()
     except KeyboardInterrupt:pass

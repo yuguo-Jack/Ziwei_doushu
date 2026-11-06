@@ -31,7 +31,7 @@ python -X utf8 scripts/check_release.py
 
 会话回归使用明确的模型/检索替身及隔离数据库，不消耗真实模型额度。发布/迁移检查验证固定快照、路径绑定、安装计划和公开文件保护。涉及实际排盘/检索时再用虚构输入运行真实CLI；涉及网页时还须实际操作、桌面/手机截图和控制台检查。构建成功不等于功能已验收。
 
-`tools/evaluate.py`为既有冻结检索/工具题集，需要完整资料及语义模型；不要改题目来提升分数。报告/来源/版本变化要保留适用条件和差异，不把程序正常等同于传统断语预测准确。
+`tools/evaluate.py`读取随仓库提供的`tests/fixtures/retrieval-questions.json`固定60题与`examples/fictional-first.json`虚构样例，需要完整资料及语义模型，不再依赖作者本机输入。不要改题目来提升分数。报告/来源/版本变化要保留适用条件和差异，不把程序正常等同于传统断语预测准确。
 
 ## 更新知识或上游
 
@@ -42,7 +42,7 @@ python -X utf8 scripts/check_release.py
 5. 案例或同盘算法更新时重新核对生成版本、还原哈希和原生匹配；当前QS与旧XD2差异仍保留。
 6. 更新CHANGELOG与文档，再提交。
 
-`runtime/build-state.json`仅是复用记录，不是原始资料。如果需要重新执行阶段可用`--rebuild`；不要删除`runtime/`来清构建缓存，因为其中还可能有个人记录和对话。
+`runtime/build-state.json`仅是复用记录，不是原始资料。如果需要重新执行阶段可用`--rebuild`；不要删除`runtime/`来清构建缓存，因为其中还可能有个人记录和对话。模型选择以`config/`为准，下载器校验后记录本机`manifests/`，不继续沿用过时下载清单。
 
 ## 网页开发
 
@@ -63,4 +63,4 @@ python -X utf8 scripts/check_release.py
 3. 提交时给具体行为说明，推送后检查GitHub Actions。
 4. 更新版本与CHANGELOG后可创建tag/release；不将本机数据库或模型挂成未经许可的数据发布。
 
-CI包含Windows/Linux会话与迁移检查、网页生产构建，以及Ubuntu核心词检索构建。它不会下载1.21GB模型、跑全77年重建或使用个人Codex账号；这些完整链路仍需发布前本机实测。平台支持以实际验证范围为准。
+CI包含Windows/Linux会话与迁移检查、网页生产构建，以及Ubuntu核心词检索构建。它不会下载1.21GB模型、跑全77年重建或使用个人Codex账号；这些完整链路仍需发布前本机实测。完整安装后用`doctor --experience`验本地功能/技能/网页与Codex连接，再做一次真实问答，不能把登录成功计为模型实答。平台支持以实际验证范围为准。

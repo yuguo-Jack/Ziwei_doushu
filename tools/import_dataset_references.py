@@ -1,4 +1,4 @@
-"""Append explicitly labeled dataset-derived candidate references to the canonical store."""
+"""Build the separate candidate store; never promote it into canonical retrieval."""
 import sys,json,sqlite3,hashlib,re
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'src'))
@@ -27,6 +27,7 @@ if __name__=='__main__':
             conn.execute('INSERT INTO chunks(stable_id,source_unit_id,title,text,title_terms,body_terms,namespace,evidence_kind,eligible,content_sha256,metadata_json) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
                 (id+f':{i}',id,title,piece,tokenize(title),tokenize(piece),'ziwei','dataset_candidate',0,sha(piece),json.dumps(meta,ensure_ascii=False)));chunks+=1
         if count%1000==0:conn.commit()
+        if count%10000==0:print(f'候选资料已整理：{count}条，{chunks}个片段',flush=True)
     conn.execute("INSERT INTO chunks_fts(chunks_fts) VALUES ('rebuild')");conn.commit()
     assert conn.execute('PRAGMA integrity_check').fetchone()[0]=='ok';assert not conn.execute('PRAGMA foreign_key_check').fetchall()
     units=conn.execute('SELECT count(*) FROM source_units').fetchone()[0];allchunks=conn.execute('SELECT count(*) FROM chunks').fetchone()[0]

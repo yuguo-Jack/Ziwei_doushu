@@ -33,11 +33,12 @@ def plan(args):
             add('pytorch-cpu',py+['-m','pip','install','torch==2.11.0','--index-url','https://download.pytorch.org/whl/cpu'])
         add('python-dependencies',py+['-m','pip','install','-r','requirements-core.txt' if args.lexical_only else 'requirements-runtime.txt'])
         add('editable-package',py+['-m','pip','install','--no-deps','-e','.'])
+    add('native-report-check',py+['-c',"import sys;sys.path.insert(0,'src');from ziwei_kb.diagnostics import report_runtime;print(report_runtime())"])
     add('pinned-sources',py+['scripts/fetch_sources.py'])
     if not args.skip_node_deps:
         for folder in ['repo','web']:
             add(folder+'-node-dependencies',npm_command()+['ci','--ignore-scripts','--no-audit','--no-fund','--cache',args.npm_cache],ROOT/folder,
-                [folder+'/node_modules/.package-lock.json'],[folder+'/package-lock.json'])
+                [folder+'/node_modules/.package-lock.json'],[folder+'/package.json',folder+'/package-lock.json'])
     add('extract-engine',['node','--import','./node_modules/tsx/dist/loader.mjs','../tools/extract_engine.ts'],ROOT/'repo',
         ['sources/supplementary/engine-knowledge.json'],['tools/extract_engine.ts','config/sources.lock.json'])
     core_inputs=['tools/build_knowledge.py','tools/import_renji.py','tools/chart_engine.ts','tools/feature_engine.ts','src/ziwei_kb/common.py','design/knowledge-schema.sql','config/sources.lock.json',
@@ -47,17 +48,17 @@ def plan(args):
     add('geography',py+['tools/collect_geography.py'],outputs=['knowledge/geography.sqlite','manifests/geography.json'],inputs=['tools/collect_geography.py','config/source-assets.lock.json'])
     if not args.lexical_only:
         model_files=json.loads((ROOT/'config/model-checksums.json').read_text(encoding='utf8'))['files']
-        add('embedding-model',py+['tools/download_model.py'],outputs=['models/'+args.model_directory+'/'+row['path'] for row in model_files],inputs=['config/embedding-model.json','config/model-checksums.json','tools/download_model.py'])
+        add('embedding-model',py+['tools/download_model.py'],outputs=['manifests/embedding-model.json','manifests/model-checksums.json']+['models/'+args.model_directory+'/'+row['path'] for row in model_files],inputs=['config/embedding-model.json','config/model-checksums.json','tools/download_model.py'])
         add('embedding-index',py+['tools/build_embeddings.py']+(['--rebuild'] if args.rebuild else []),outputs=['indexes/current.json','manifests/embedding-token-lengths.json'],inputs=core_inputs+['tools/build_embeddings.py','config/embedding-model.json','manifests/embedding-model.json'])
     if args.profile=='full':
         years=[row['year'] for row in json.loads((ROOT/'data/MANIFEST.json').read_text(encoding='utf8'))['files']]
         add('case-downloads',py+['tools/download_assets.py'],outputs=['manifests/v4-downloads.json']+[f'sources/v4.0-13d/year-{year}.jsonl.zst' for year in years],inputs=['data/MANIFEST.json','tools/download_assets.py'])
         add('case-shards',py+['tools/build_cases.py','--workers',str(args.workers)],outputs=['manifests/cases.json']+[f'cases/v4.0-13d/year-{year}.sqlite' for year in years],inputs=['tools/build_cases.py','design/case-shard-schema.sql','data/MANIFEST.json'])
-        add('candidate-extraction',py+['tools/extract_dataset_references.py'],outputs=['sources/supplementary/v4-reference-materials.jsonl','manifests/dataset-references.json'],inputs=['tools/extract_dataset_references.py','data/MANIFEST.json'])
+        add('candidate-extraction',py+['tools/extract_dataset_references.py','--workers',str(args.workers)]+(['--rebuild'] if args.rebuild else []),outputs=['sources/supplementary/v4-reference-materials.jsonl','manifests/dataset-references.json'],inputs=['tools/extract_dataset_references.py','data/MANIFEST.json'])
         add('candidate-database',py+['tools/import_dataset_references.py'],outputs=['knowledge/reference-materials.sqlite'],inputs=['tools/import_dataset_references.py','design/knowledge-schema.sql','tools/extract_dataset_references.py','src/ziwei_kb/common.py','data/MANIFEST.json','manifests/dataset-references.json'])
         add('twins-features',['node','--import','./node_modules/tsx/dist/loader.mjs','../tools/build_twins.ts'],ROOT/'repo',outputs=['indexes/twins-major-split-v1/features.jsonl','indexes/twins-major-split-v1/build.json'],inputs=['tools/build_twins.ts','config/sources.lock.json'])
         add('twins-index',py+['tools/pack_twins.py'],outputs=['manifests/twins.json','indexes/twins-major-split-v1/features.npy','indexes/twins-major-split-v1/dates.npy'],inputs=['tools/pack_twins.py','tools/verify_twins.ts','tools/build_twins.ts'])
-    add('web-build',npm_command()+['run','build'],ROOT/'web',outputs=['web/dist/index.html'],inputs=['web/package-lock.json']+[p.relative_to(ROOT).as_posix() for p in (ROOT/'web/src').rglob('*') if p.is_file()]+[p.relative_to(ROOT).as_posix() for p in (ROOT/'web/public').rglob('*') if p.is_file()]+['web/index.html'])
+    add('web-build',npm_command()+['run','build'],ROOT/'web',outputs=['web/dist/index.html'],inputs=['web/package.json','web/package-lock.json']+[p.relative_to(ROOT).as_posix() for p in (ROOT/'web/src').rglob('*') if p.is_file()]+[p.relative_to(ROOT).as_posix() for p in (ROOT/'web/public').rglob('*') if p.is_file()]+['web/index.html'])
     return steps
 
 def atomic_json(path,value):
@@ -102,9 +103,6 @@ def main(argv=None):
     node_version=subprocess.check_output(['node','-p','process.versions.node'],text=True).strip()
     if int(node_version.split('.')[0])<24:parser.error('Node.js 24+ is required by the engine loader.')
     for folder in ['runtime','logs','exports','knowledge','manifests','indexes','cases/v4.0-13d','sources/supplementary']:(ROOT/folder).mkdir(parents=True,exist_ok=True)
-    # Do not overwrite a working model specification or write any personal records.
-    for name in ['embedding-model.json','model-checksums.json']:
-        if not (ROOT/'manifests'/name).exists():shutil.copy2(ROOT/'config'/name,ROOT/'manifests'/name)
     verify_assets()
     state_path=ROOT/'runtime/build-state.json';state=json.loads(state_path.read_text(encoding='utf8')) if state_path.exists() else {}
     env=os.environ.copy();env['PYTHONUTF8']='1';env['ZIWEI_KB_ROOT']=str(ROOT)
@@ -119,12 +117,14 @@ def main(argv=None):
             subprocess.run(step['command'],cwd=step['cwd'],env=env,check=True)
             if signature:state[step['name']]=signature;atomic_json(state_path,state)
         refresh_candidate_stats()
-        marker={'schema_version':1,'profile':args.profile,'semantic':not args.lexical_only,'status':'checking','prepared_at':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+        marker={'schema_version':1,'profile':args.profile,'semantic':not args.lexical_only,'web':True,'status':'checking','prepared_at':datetime.datetime.now(datetime.timezone.utc).isoformat()}
         atomic_json(ROOT/'runtime/installation.json',marker)
         subprocess.run([sys.executable,'-X','utf8','ziwei.py','doctor'],cwd=ROOT,env=env,check=True)
-        marker['status']='ready';atomic_json(ROOT/'runtime/installation.json',marker)
         if args.install_skill:subprocess.run([sys.executable,'-X','utf8','scripts/install_skill.py'],cwd=ROOT,env=env,check=True)
-        print('准备完成。启动网页：python -X utf8 ziwei.py serve --port 8765；直接提问见 README.md。',flush=True);return 0
+        marker['status']='ready';atomic_json(ROOT/'runtime/installation.json',marker)
+        print('本地资料与网页准备完成。自动问答另需安装并登录Codex CLI。',flush=True)
+        print('完整体验验收：python -X utf8 ziwei.py doctor --experience（不消耗模型回答额度）。',flush=True)
+        print('启动网页：python -X utf8 ziwei.py serve --port 8765；直接提问见 README.md。',flush=True);return 0
     except (OSError,RuntimeError,subprocess.CalledProcessError) as error:
         parser.exit(1,'准备未完成：'+str(error)+'\n已完成阶段会保留。修复原因后重新运行同一命令。\n')
 

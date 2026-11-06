@@ -16,7 +16,7 @@
 | 一致性备份 | 用户要求时`personal backup`，返回exports内独立.sqlite路径，或`--output-file <绝对路径.sqlite>`；不覆盖旧文件，只含个人记录，不含全部知识库/模型 |
 | 五种报告 | `report --input-file <出生JSON> --mode sanhe --hide-birth`生成HTML/Markdown/SVG/PNG/PDF，绝对路径返回；mode还支持feixing/sihua |
 | 保存本次解释 | 先将当前Codex综合解释及引文写为UTF-8 Markdown，再`report ... --analysis-file <绝对路径>`；报告把本次解释和原文分开标注 |
-| 范围/完整性 | `coverage`查看资料与评测；`doctor`检查模型、数据库、索引和案例；`doctor --deep`校验模型SHA和数据库完整性 |
+| 范围/完整性 | `coverage`查看资料与评测；`doctor`检查所选范围；`doctor --deep`做完整性校验；`doctor --experience`实际验完整语义/计算/案例/同盘、网页资源、技能绑定和Codex接口/登录，不发起模型回答 |
 | 可选网页 | `serve --port 8765`或工作区`scripts/start-workbench.ps1`；网页使用同一工具层，CLI不依赖它 |
 
 `ask "问题" --namespace renji --mode lexical`用于知识型分域词检索，不带出生输入。`ask`带`--view natal`明确返回本命，移除保存输入的period；日期、农历流年、大限序号互斥，显式CLI目标会替换旧period目标。doctor必需项失败退出码为1；网页停止用`scripts/stop-workbench.ps1`核对归属，不能按端口盲杀。

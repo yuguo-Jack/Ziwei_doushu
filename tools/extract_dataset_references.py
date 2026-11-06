@@ -5,15 +5,15 @@ It is not promoted to universally valid or executable theory by repetition.
 """
 from concurrent.futures import ProcessPoolExecutor,as_completed
 from pathlib import Path
-import hashlib,json,re,sqlite3,sys
+import argparse,hashlib,json,re,sqlite3
 import zstandard
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'sources/supplementary/v4-references';OUT.mkdir(exist_ok=True)
 HEADS={'一句话定调','核心论断','命盘依据','经典出处'}
 
-def extract(year):
+def extract(year,rebuild=False):
     target=OUT/f'year-{year}.jsonl';meta=OUT/f'year-{year}.json'
-    if target.exists() and meta.exists():return json.loads(meta.read_text(encoding='utf-8'))
+    if not rebuild and target.exists() and meta.exists():return json.loads(meta.read_text(encoding='utf-8'))
     path=ROOT/f'cases/v4.0-13d/year-{year}.sqlite';c=sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True)
     blocks=dict(c.execute('SELECT id,exact_text FROM text_blocks'));decoder=zstandard.ZstdDecompressor();found={}
     rows=c.execute('''SELECT t.id,t.layout_zstd,ct.topic,min(cs.birth_key),count(*)
@@ -35,11 +35,14 @@ def extract(year):
     result={'year':year,'reference_sections':len(found),'bytes':target.stat().st_size};meta.write_text(json.dumps(result),encoding='utf-8');return result
 
 if __name__=='__main__':
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--workers',type=int,default=3);parser.add_argument('--rebuild',action='store_true');args=parser.parse_args()
+    if not 1<=args.workers<=8:parser.error('--workers must be 1..8')
     # The merged snapshot remains sufficient after removing verified yearly intermediates.
     # An explicit --rebuild regenerates those intermediates from the lossless case shards.
     manifest=ROOT/'manifests/dataset-references.json'
     snapshot=ROOT/'sources/supplementary/v4-reference-materials.jsonl'
-    if '--rebuild' not in sys.argv and manifest.exists() and snapshot.exists():
+    if not args.rebuild and manifest.exists() and snapshot.exists():
         saved=json.loads(manifest.read_text(encoding='utf-8'))
         if saved.get('complete') and saved.get('sha256'):
             digest=hashlib.sha256()
@@ -49,8 +52,8 @@ if __name__=='__main__':
                 print(json.dumps({'status':'verified_existing_snapshot',**saved},ensure_ascii=False),flush=True)
                 raise SystemExit(0)
     results=[]
-    with ProcessPoolExecutor(max_workers=3) as pool:
-        for f in as_completed([pool.submit(extract,y) for y in range(1950,2027)]):
+    with ProcessPoolExecutor(max_workers=args.workers) as pool:
+        for f in as_completed([pool.submit(extract,y,args.rebuild) for y in range(1950,2027)]):
             row=f.result();results.append(row);print(json.dumps(row),flush=True)
     merged={}
     for year in range(1950,2027):

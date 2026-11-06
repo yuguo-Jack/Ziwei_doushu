@@ -1,6 +1,6 @@
 # 依赖与版本管理
 
-推荐Python 3.12、Node.js 24+和Git。`pyproject.toml`用于可编辑安装与CLI入口；`requirements-core.txt`用于轻量运行，`requirements-runtime.txt`加语义检索，`requirements-dev.txt`加报告验证。版本改变时同步这些文件，避免开发机与新用户解析到不同组合。
+推荐Python 3.12、Node.js 24+和Git。`pyproject.toml`用于可编辑安装与CLI入口；`requirements-core.txt`用于轻量运行，`requirements-runtime.txt`加语义检索，`requirements-dev.txt`加报告验证。Python直接依赖和模型加载关键依赖固定版本；其它传递依赖由pip解析，不能称为整个Python环境逐字节相同。版本改变时同步这些文件，避免开发机与新用户解析到不同组合。
 
 | Python依赖 | 作用 |
 |---|---|
@@ -12,6 +12,7 @@
 | markdown-it-py | 安全渲染回答和报告Markdown |
 | CairoSVG、reportlab、Pillow | PNG、PDF与图像导出；Cairo本体与中文字体另行配置 |
 | torch、sentence-transformers、huggingface-hub | 可选固定Qwen嵌入模型下载和本地推理 |
+| transformers、tokenizers、safetensors | 固定模型载入、分词和权重读取行为，避免新安装自动切换到未验证组合 |
 | PyMuPDF | 开发验证PDF；不是独立聊天模型 |
 
 网页固定React 19.3.0、React DOM 19.3.0与Vite 8.3.6，完整传递依赖由`web/package-lock.json`锁定。排盘使用固定上游`repo/package-lock.json`中的iztro、lunar-javascript、tsx、TypeScript等，源码版本由`config/sources.lock.json`固定。
