@@ -1,0 +1,145 @@
+{
+  "duration": 30.0,
+  "fps": 60,
+  "bpm": 140,
+  "scenes": [
+    {
+      "id": "hook",
+      "label": "星在何处 · 言从何来",
+      "beats": 4,
+      "speech": "",
+      "start": 0.0,
+      "duration": 1.714286,
+      "speech_start": 0.1,
+      "speech_duration": 0.0
+    },
+    {
+      "id": "brand",
+      "label": "紫微研习",
+      "beats": 4,
+      "chapter": false,
+      "speech": "紫微研习。",
+      "start": 1.714286,
+      "duration": 1.714286,
+      "speech_start": 1.814286,
+      "speech_duration": 0.670375
+    },
+    {
+      "id": "chart",
+      "label": "本地排盘与运限",
+      "beats": 8,
+      "speech": "本地排盘，运限一眼联看。",
+      "start": 3.428571,
+      "duration": 3.428571,
+      "speech_start": 3.528571,
+      "speech_duration": 1.891167
+    },
+    {
+      "id": "sources",
+      "label": "原文 · 出处 · 条件",
+      "beats": 8,
+      "speech": "搜原文，查出处，核对条件。",
+      "start": 6.857143,
+      "duration": 3.428571,
+      "speech_start": 6.957143,
+      "speech_duration": 2.375208
+    },
+    {
+      "id": "chat",
+      "label": "Codex有据研读",
+      "beats": 8,
+      "speech": "Codex解读，追问有据可查。",
+      "start": 10.285714,
+      "duration": 3.428571,
+      "speech_start": 10.385714,
+      "speech_duration": 2.066333
+    },
+    {
+      "id": "tools",
+      "label": "合盘 · 历法 · 报告",
+      "beats": 8,
+      "speech": "合盘、历法、报告，一套打通。",
+      "start": 13.714286,
+      "duration": 3.428571,
+      "speech_start": 13.814286,
+      "speech_duration": 2.302542
+    },
+    {
+      "id": "setup",
+      "label": "克隆 · 安装 · 登录 · 提问",
+      "beats": 16,
+      "speech": "克隆、安装，登录Codex。打开网页，直接提问。",
+      "start": 17.142857,
+      "duration": 6.857143,
+      "speech_start": 17.242857,
+      "speech_duration": 4.2095
+    },
+    {
+      "id": "entries",
+      "label": "网站 · 终端 · Skill",
+      "beats": 8,
+      "speech": "网站、终端、Skill，随你选。",
+      "start": 24.0,
+      "duration": 3.428571,
+      "speech_start": 24.1,
+      "speech_duration": 2.593458
+    },
+    {
+      "id": "outro",
+      "label": "星有所位 · 言有所据",
+      "beats": 6,
+      "speech": "紫微研习，言有所据。",
+      "start": 27.428571,
+      "duration": 2.571429,
+      "speech_start": 27.528571,
+      "speech_duration": 1.696125
+    }
+  ],
+  "captions": [
+    {
+      "start": 1.814,
+      "end": 3.349,
+      "text": "紫微研习。"
+    },
+    {
+      "start": 3.529,
+      "end": 6.777,
+      "text": "本地排盘，运限一眼联看。"
+    },
+    {
+      "start": 6.957,
+      "end": 10.206,
+      "text": "搜原文，查出处，核对条件。"
+    },
+    {
+      "start": 10.386,
+      "end": 13.634,
+      "text": "Codex解读，追问有据可查。"
+    },
+    {
+      "start": 13.814,
+      "end": 17.063,
+      "text": "合盘、历法、报告，一套打通。"
+    },
+    {
+      "start": 17.243,
+      "end": 19.698,
+      "text": "克隆、安装，登录Codex。"
+    },
+    {
+      "start": 19.698,
+      "end": 23.92,
+      "text": "打开网页，直接提问。"
+    },
+    {
+      "start": 24.1,
+      "end": 27.349,
+      "text": "网站、终端、Skill，随你选。"
+    },
+    {
+      "start": 27.529,
+      "end": 29.92,
+      "text": "紫微研习，言有所据。"
+    }
+  ]
+}

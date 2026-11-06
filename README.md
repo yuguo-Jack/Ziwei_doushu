@@ -8,7 +8,11 @@ Local, source-referenced Ziwei tools and retrieval with a Codex-powered workbenc
 
 [安装](docs/INSTALLATION.zh-CN.md) · [使用](USAGE.zh-CN.md) · [网页功能](docs/WEB.zh-CN.md) · [知识库构建](docs/KNOWLEDGE_BASE.zh-CN.md) · [第三方依赖与许可](THIRD_PARTY_NOTICES.md) · [维护开发](docs/DEVELOPMENT.zh-CN.md)
 
-![本地工作台，虚构示例盘](docs/screenshots/workbench.jpg)
+[![紫微研习产品介绍：玄金观星台、主要功能与安装使用](docs/screenshots/product-tour.jpg)](web/public/media/ziwei-intro.mp4)
+
+**[▶ 观看产品介绍 · 30秒速览（MP4，可观看或下载）](web/public/media/ziwei-intro.mp4)** · [查看工作台截图](docs/screenshots/workbench.jpg)
+
+视频快速展示命盘与运限、原文检索、Codex连续追问、研习工具，以及“克隆—安装—登录—提问”的使用路径；完整命令见下方快速开始。安装后的网页右上角点击“观看介绍”可直接播放、拖动进度和跳转章节。观看成片无需安装视频制作工具。
 
 ## 可以做什么
 

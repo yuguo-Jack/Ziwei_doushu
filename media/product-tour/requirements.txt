@@ -1,0 +1,4 @@
+# Optional production tools only; not needed to install or watch the workbench.
+edge-tts==7.3.1
+numpy==2.5.1
+fonttools[woff]==4.63.0

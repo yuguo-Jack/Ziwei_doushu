@@ -1,0 +1,20 @@
+{
+  "title": "紫微研习 · 30秒极速导览",
+  "voice": "zh-CN-YunxiNeural",
+  "voice_rate": "+18%",
+  "fps": 60,
+  "bpm": 140,
+  "duration": 30,
+  "poster_at": 28.6,
+  "scenes": [
+    {"id":"hook","label":"星在何处 · 言从何来","beats":4,"speech":""},
+    {"id":"brand","label":"紫微研习","beats":4,"chapter":false,"speech":"紫微研习。"},
+    {"id":"chart","label":"本地排盘与运限","beats":8,"speech":"本地排盘，运限一眼联看。"},
+    {"id":"sources","label":"原文 · 出处 · 条件","beats":8,"speech":"搜原文，查出处，核对条件。"},
+    {"id":"chat","label":"Codex有据研读","beats":8,"speech":"Codex解读，追问有据可查。"},
+    {"id":"tools","label":"合盘 · 历法 · 报告","beats":8,"speech":"合盘、历法、报告，一套打通。"},
+    {"id":"setup","label":"克隆 · 安装 · 登录 · 提问","beats":16,"speech":"克隆、安装，登录Codex。打开网页，直接提问。"},
+    {"id":"entries","label":"网站 · 终端 · Skill","beats":8,"speech":"网站、终端、Skill，随你选。"},
+    {"id":"outro","label":"星有所位 · 言有所据","beats":6,"speech":"紫微研习，言有所据。"}
+  ]
+}

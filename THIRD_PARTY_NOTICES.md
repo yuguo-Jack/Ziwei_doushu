@@ -15,6 +15,9 @@
 | React / React DOM / Vite | `web/package-lock.json` | 以安装包各自license为准；均不把node_modules提交到Git |
 | iztro / lunar-javascript / tsx / TypeScript等 | 固定引擎的`package-lock.json` | 通过固定上游`npm ci`安装，保留各包许可；不是本项目重新授权 |
 | Python依赖 | `pyproject.toml`及`requirements-*.txt` | 详见[依赖说明](docs/DEPENDENCIES.zh-CN.md)；安装包各自许可保留 |
+| 产品视频Noto Serif SC / Noto Sans SC派生字体 | `media/product-tour/assets/` | 重命名、静态化与子集化；保留[OFL](media/product-tour/assets/OFL.txt)和[来源/哈希](media/product-tour/assets/fonts.json) |
+| HyperFrames / GSAP | 制作工具固定0.9.19 / 3.14.2，单独安装 | HyperFrames包声明Apache-2.0；GSAP以其安装包LICENSE为准。工具与库文件不随本Git分发；[视频源和重制说明](media/product-tour/README.md)保留固定版本 |
+| 中文产品旁白 / 配乐 | `media/product-tour/assets/soundtrack.m4a` | Edge TTS合成公开旁白文字，服务仍适用其自身条款；背景配乐由本项目确定性合成，不使用第三方音乐录音。截图中的第三方引文继续遵循原资料条款 |
 
 课程内容著作权归倪海厦先生及其权利继承人，上游语料是短引文整理而非完整课程逐字稿。可公开取得不等于放弃原有权利。基于这些课程制作和分发衍生资料时，应遵守署名、非商业和相同方式共享要求，参阅[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans)。其它CC BY材料保留署名和修改说明，参阅[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.zh-hans)。
 

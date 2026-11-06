@@ -1,0 +1,23 @@
+{
+  "source": "https://github.com/notofonts/noto-cjk",
+  "license": "SIL Open Font License 1.1",
+  "derivation": "Renamed static subsets for the30-second product film",
+  "files": [
+    {
+      "file": "display.woff2",
+      "family": "Ziwei Tour Display",
+      "upstream_family": "NotoSerifSC-VF.ttf",
+      "weight": 700,
+      "bytes": 52512,
+      "sha256": "d6eab44afaac080d5eebaa5aba5db244cff665f5e9d64fee003ade0e0fc77675"
+    },
+    {
+      "file": "sans.woff2",
+      "family": "Ziwei Tour Sans",
+      "upstream_family": "NotoSansSC-VF.ttf",
+      "weight": 400,
+      "bytes": 39924,
+      "sha256": "6dd62ba09c74d0663495dfbee78bd4924f04ac3219e569226dbcc45326657277"
+    }
+  ]
+}

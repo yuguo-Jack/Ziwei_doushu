@@ -1,5 +1,5 @@
 """Loopback-only workbench. The embedding model retrieves; Codex remains the answerer."""
-import json,mimetypes,urllib.parse
+import json,mimetypes,re,urllib.parse
 from http.server import BaseHTTPRequestHandler
 from .local_http import LocalHTTPServer
 from .common import ROOT,TOPICS
@@ -79,15 +79,48 @@ def _dispatch(data):
 class Handler(BaseHTTPRequestHandler):
     def log_message(self,format,*args):pass
     def allowed_host(self):return self.headers.get('Host') in [f'127.0.0.1:{self.server.server_port}',f'localhost:{self.server.server_port}']
-    def send_data(self,body,kind='application/json; charset=utf-8',status=200):
-        raw=body if isinstance(body,bytes) else json.dumps(body,ensure_ascii=False).encode('utf-8')
-        self.send_response(status);self.send_header('Content-Type',kind);self.send_header('Content-Length',str(len(raw)))
+    def response_headers(self,kind,status,length,extra=()):
+        self.send_response(status);self.send_header('Content-Type',kind);self.send_header('Content-Length',str(length))
         self.send_header('Cache-Control','no-store');self.send_header('X-Content-Type-Options','nosniff')
         self.send_header('Referrer-Policy','no-referrer')
-        self.send_header('Content-Security-Policy',"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'")
+        self.send_header('Content-Security-Policy',"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'")
+        for name,value in extra:self.send_header(name,value)
         self.end_headers()
+    def send_data(self,body,kind='application/json; charset=utf-8',status=200):
+        raw=body if isinstance(body,bytes) else json.dumps(body,ensure_ascii=False).encode('utf-8')
+        self.response_headers(kind,status,len(raw))
+        if self.command=='HEAD':return
         try:self.wfile.write(raw)
         except (BrokenPipeError,ConnectionResetError,ConnectionAbortedError):pass # Browser reload cancelled this response.
+    def send_media(self,path,kind):
+        size=path.stat().st_size;start=0;end=size-1;status=200;extra=[('Accept-Ranges','bytes')]
+        requested=self.headers.get('Range') if self.command!='HEAD' else None
+        if requested:
+            match=re.fullmatch(r'bytes=(\d*)-(\d*)',requested.strip())
+            try:
+                if not match or not any(match.groups()) or not size:raise ValueError()
+                first,last=match.groups()
+                if first:
+                    start=int(first);end=min(int(last),size-1) if last else size-1
+                else:
+                    suffix=int(last)
+                    if not suffix:raise ValueError()
+                    start=max(0,size-suffix)
+                if start> end or start>=size:raise ValueError()
+            except ValueError:
+                self.response_headers(kind,416,0,[('Content-Range',f'bytes */{size}'),('Accept-Ranges','bytes')]);return
+            status=206;extra.append(('Content-Range',f'bytes {start}-{end}/{size}'))
+        remaining=max(0,end-start+1);self.response_headers(kind,status,remaining,extra)
+        if self.command=='HEAD':return
+        try:
+            with path.open('rb') as stream:
+                stream.seek(start)
+                while remaining:
+                    chunk=stream.read(min(65536,remaining))
+                    if not chunk:break
+                    self.wfile.write(chunk);remaining-=len(chunk)
+        except (BrokenPipeError,ConnectionResetError,ConnectionAbortedError):pass
+    def do_HEAD(self):return self.do_GET()
     def do_GET(self):
         if not self.allowed_host():return self.send_data({'error':'Loopback Host required'},status=403)
         route=urllib.parse.urlsplit(self.path).path
@@ -102,8 +135,9 @@ class Handler(BaseHTTPRequestHandler):
             folder=ROOT/'web/dist';relative=urllib.parse.unquote(route.lstrip('/')) or 'index.html'
         path=(folder/relative).resolve()
         if not path.is_relative_to(folder.resolve()) or not path.is_file():return self.send_data({'error':'Not found'},status=404)
-        if path.suffix not in ['.html','.js','.css','.svg','.png','.pdf','.ico','.md','.json','.woff2']:return self.send_data({'error':'Not served'},status=403)
-        mime='font/woff2' if path.suffix=='.woff2' else mimetypes.guess_type(path.name)[0] or 'application/octet-stream'
+        if path.suffix not in ['.html','.js','.css','.svg','.png','.jpg','.jpeg','.pdf','.ico','.md','.json','.woff2','.mp4','.webm','.vtt']:return self.send_data({'error':'Not served'},status=403)
+        mime={'.woff2':'font/woff2','.mp4':'video/mp4','.webm':'video/webm','.vtt':'text/vtt'}.get(path.suffix) or mimetypes.guess_type(path.name)[0] or 'application/octet-stream'
+        if path.suffix in ['.mp4','.webm']:return self.send_media(path,mime)
         return self.send_data(path.read_bytes(),mime+'; charset=utf-8' if mime.startswith('text/') else mime)
     def do_POST(self):
         if not self.allowed_host():return self.send_data({'error':'Loopback Host required'},status=403)

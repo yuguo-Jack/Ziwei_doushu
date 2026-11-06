@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1920, height=1080" />
+<title>紫微研习 · 30秒极速导览</title>
+<link rel="stylesheet" href="composition.css" />
+<script src="assets/gsap.min.js"></script>
+<script src="timing.js"></script>
+</head>
+<body>
+<div id="film" data-composition-id="ziwei-intro" data-start="0" data-duration="__DURATION__" data-width="1920" data-height="1080" data-fps="__FPS__">
+  <div class="universe" data-layout-ignore aria-hidden="true"><div class="aura"></div><div class="jade-aura"></div><svg id="star-field" viewBox="0 0 1920 1080"></svg><div class="meridian"></div></div>
+  <div class="edge-lines" data-layout-ignore aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  <header class="film-brand"><span>✧</span>紫微研习</header>
+  <div class="edition-label">玄金观星台<span>30秒极速导览</span></div>
+
+  <section id="hook" class="scene">
+    <div class="orbit hook-orbit" data-layout-ignore aria-hidden="true"></div>
+    <div class="hook-words"><p class="hook-first">星在何处<span>？</span></p><p class="hook-second">言从何来<span>？</span></p></div>
+    <span class="ghost hook-ghost" data-layout-ignore aria-hidden="true">观</span>
+    <div class="hook-stroke" data-layout-ignore aria-hidden="true"></div>
+  </section>
+
+  <section id="brand" class="scene">
+    <div class="orbit brand-orbit" data-layout-ignore aria-hidden="true"></div>
+    <div class="brand-content"><p class="kicker">你 的 本 地 观 星 台</p><h1>紫微研习</h1><p class="brand-line">星有所位，言有所据。</p></div>
+    <div class="brand-seal" data-layout-ignore aria-hidden="true">研习</div>
+  </section>
+
+  <section id="chart" class="scene">
+    <div class="feature-copy"><p class="kicker">01 / 本地计算</p><h2>排盘<span>联看</span></h2><p class="feature-line">十二宫 × 三方四正</p></div>
+    <div class="product-panel chart-panel"><div class="window-top"><span class="window-led" data-layout-ignore aria-hidden="true">● ● ●</span><b>命盘研究</b><span>真实界面 · 虚构示例</span></div><div class="viewport"><img id="chart-image" src="assets/workbench.jpg" alt="命盘研究真实界面，使用虚构资料" data-layout-allow-overflow /></div></div>
+    <div class="period-track"><span>本命</span><i></i><span>大限</span><i></i><span>流年</span><i></i><span>逐层研读</span></div>
+    <div class="scan-ring" data-layout-ignore aria-hidden="true"></div>
+  </section>
+
+  <section id="sources" class="scene">
+    <div class="feature-copy"><p class="kicker">02 / 让解释有来处</p><h2>循典<span>有据</span></h2><p class="feature-line">关键词 + 本地语义检索</p></div>
+    <div class="knowledge-machine">
+      <div class="search-command"><span>⌕</span><strong id="search-typed">三方四正，有哪些依据？</strong><i></i><b>检索</b></div>
+      <div class="flying-paper paper-course"><p>课程原文</p><h3>天纪</h3><span>原文定位 · 逐条回查</span><div class="paper-lines" data-layout-ignore aria-hidden="true"><i></i><i></i><i></i></div></div>
+      <div class="flying-paper paper-classic"><p>古籍原典</p><h3>卷章有据</h3><span>版本与来源分别保留</span><div class="paper-lines" data-layout-ignore aria-hidden="true"><i></i><i></i><i></i></div></div>
+      <div class="evidence-chain"><span>原文</span><i>→</i><span>出处</span><i>→</i><span>条件</span></div>
+    </div>
+  </section>
+
+  <section id="chat" class="scene">
+    <div class="feature-copy"><p class="kicker">03 / Codex 结合本地资料</p><h2>追问<span>有据</span></h2><p class="feature-line">事实 → 原文 → 解释</p></div>
+    <div class="product-panel chat-panel"><div class="window-top"><span class="window-led" data-layout-ignore aria-hidden="true">● ● ●</span><b>问答研读</b><span>真实问答 · 虚构示例</span></div><div class="viewport"><img id="chat-image" src="assets/chat-desktop.jpg" alt="Codex实际连续研读与引用，虚构示例" data-layout-allow-overflow /></div></div>
+    <div class="question-prompt"><span>示例追问</span><strong>为什么这么说？给我出处。</strong><b>↗</b></div>
+    <div class="citation-card"><span>↗</span><p>引用可打开<strong>回到原文</strong></p></div>
+  </section>
+
+  <section id="tools" class="scene">
+    <div class="feature-copy"><p class="kicker">04 / 研习工具，连成一体</p><h2>一套<span>打通</span></h2><p class="feature-line">计算 · 对照 · 留存</p></div>
+    <div class="tool-carousel">
+      <div class="tool-card" id="tool-0"><div class="tool-art twin-art" data-layout-ignore aria-hidden="true"><i></i><i></i><b>✧</b></div><strong>合盘对照</strong><p>感情 · 合伙 · 上下级 · 朋友</p></div>
+      <div class="tool-card" id="tool-1"><div class="tool-art clock-art" data-layout-ignore aria-hidden="true"><i></i><b>◷</b></div><strong>历法换算</strong><p>地点 · 历史时区 · 真太阳时</p></div>
+      <div class="tool-card" id="tool-2"><div class="tool-art twin-grid" data-layout-ignore aria-hidden="true"><i></i><i></i><b>⌕</b></div><strong>同盘检索</strong><p>结构对照 · 保留差异</p></div>
+      <div class="tool-card" id="tool-3"><div class="tool-art report-art" data-layout-ignore aria-hidden="true"><i></i><i></i><i></i><b>↗</b></div><strong>保存导出</strong><p>记录 · 收藏 · 五种报告格式</p></div>
+    </div>
+    <div class="tool-index"><span>合盘</span><span>历法</span><span>同盘</span><span>报告</span></div>
+  </section>
+
+  <section id="setup" class="scene">
+    <div class="setup-heading"><p class="kicker">05 / 四步，进入你的观星台</p><h2>从克隆，到提问。</h2></div>
+    <div class="setup-track">
+      <div class="step-light" data-layout-ignore aria-hidden="true"></div>
+      <div class="setup-step"><span class="step-number">01</span><h3>克隆工程</h3><p>获取本仓库源码</p><code>git clone</code></div>
+      <div class="setup-step"><span class="step-number">02</span><h3>完整安装</h3><p>运行安装脚本，准备资料与模型</p><code>bootstrap.py<span>--profile full</span></code></div>
+      <div class="setup-step"><span class="step-number">03</span><h3>登录 Codex</h3><p>使用自己的账号</p><code>codex login</code></div>
+      <div class="setup-step"><span class="step-number">04</span><h3>启动并提问</h3><p>打开本地工作台</p><code>127.0.0.1:8765</code><small>三方四正是什么？</small></div>
+    </div>
+    <p class="setup-note">准备 Python / Node.js / Git · 完整安装命令与系统依赖见 README</p>
+  </section>
+
+  <section id="entries" class="scene">
+    <p class="entry-kicker kicker">同一套能力，随你选择。</p>
+    <div class="entry-tags"><span>网站</span><span>终端</span><span>Skill</span></div>
+    <div class="entry-shot" id="entry-0"><h2>网站</h2><p>127.0.0.1:8765</p><span>直接提问，连续研读。</span></div>
+    <div class="entry-shot" id="entry-1"><h2>终端</h2><p>python ziwei.py chat ask "三方四正？给出处"</p><span>终端里也能完整使用。</span></div>
+    <div class="entry-shot" id="entry-2"><h2>Skill</h2><p>$ziwei-knowledge-search 三方四正是什么？</p><span>在 Codex 中，直接调用。</span></div>
+  </section>
+
+  <section id="outro" class="scene">
+    <div class="orbit end-orbit" data-layout-ignore aria-hidden="true"></div>
+    <div class="end-content"><p class="kicker">以 星 为 引 · 循 典 而 读</p><h2>紫微研习</h2><p class="end-promise">星有所位 · 言有所据</p><div class="end-rule" data-layout-ignore aria-hidden="true"></div><p class="end-link">github.com/yuguo-Jack/Ziwei_doushu</p></div>
+  </section>
+
+  <div id="captions"></div>
+  <div class="film-footnote">本地资料 · Codex 回答需联网</div><div class="fiction-note">虚构资料演示 · 传统文化研读</div>
+  <div class="transition-band" data-layout-ignore aria-hidden="true"><i></i></div>
+  <div class="film-progress" data-layout-ignore aria-hidden="true"><span></span></div>
+  <audio id="soundtrack" class="clip" src="assets/soundtrack.m4a" data-start="0" data-duration="__DURATION__" data-track-index="10" data-volume="1"></audio>
+</div>
+<script src="composition.js"></script>
+</body>
+</html>
