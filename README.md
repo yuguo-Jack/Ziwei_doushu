@@ -28,7 +28,11 @@ Local, source-referenced Ziwei tools and retrieval with a Codex-powered workbenc
 
 ## 快速开始
 
+这是安装在**使用者自己电脑上**的项目。GitHub提供源码和安装文档；每位使用者完成安装、启动自己的服务后，再用浏览器访问自己的本机地址。项目目前没有公共在线演示站点。
+
 先准备 **Python 3.12、Node.js 24+、Git**。PNG/PDF 导出需要 Cairo 和中文字体，Windows 配置见[安装说明](docs/INSTALLATION.zh-CN.md#系统依赖)。GPU 可选；CPU 可以运行嵌入模型。
+
+**完整安装并启动（CPU通用方式）：** 只需先克隆本仓库，下面的安装器会继续获取第三方来源和模型，无需手动逐个克隆。
 
 ```powershell
 git clone https://github.com/yuguo-Jack/Ziwei_doushu.git
@@ -38,7 +42,31 @@ python -X utf8 ziwei.py doctor
 python -X utf8 ziwei.py serve --port 8765
 ```
 
-打开 **http://127.0.0.1:8765/**。完整安装会获取固定版本的三个上游仓库、下载约1.21GB嵌入模型、构建77年案例与候选库及同盘索引，建议至少留 **20GB** 空间；首次可能需要数十分钟到数小时。下载与构建可保留已完成阶段，失败后修复原因并重跑同一命令。
+安装器显示“准备完成”、`doctor`检查通过，并且最后的`serve`命令保持运行后，在**这台电脑的浏览器地址栏输入**：
+
+```text
+http://127.0.0.1:8765/
+```
+
+`127.0.0.1`（localhost）始终指浏览器所在的电脑。其他人按上面步骤在自己的电脑安装后，使用同一地址访问自己的实例；服务未启动时，这个地址打不开。保持服务终端开启，按Ctrl+C可停止。
+
+### 完整安装会自动下载哪些内容
+
+| 内容 | 上游来源 | 在本项目中的位置 |
+|---|---|---|
+| 排盘引擎 | [Renhuai123/ziwei-doushu](https://github.com/Renhuai123/ziwei-doushu)，固定提交`a600484` | `repo/` |
+| 天纪课程原文 | [Renhuai123/nihai-tianji-corpus](https://github.com/Renhuai123/nihai-tianji-corpus)，固定提交`462faa4` | `sources/tianji-462faa4/` |
+| 人纪课程原文 | [Renhuai123/nihai-renji-corpus](https://github.com/Renhuai123/nihai-renji-corpus)，固定提交`fdafae1` | `sources/renji/` |
+| 本地嵌入模型 | [Qwen/Qwen3-Embedding-0.6B](https://huggingface.co/Qwen/Qwen3-Embedding-0.6B)，固定revision`97b0c614…`，约1.21GB | `models/Qwen3-Embedding-0.6B/<revision>/` |
+| 77年旧版本命案例 | [ziwei-doushu v4.0-13d发布数据](https://github.com/Renhuai123/ziwei-doushu/releases/tag/v4.0-13d) | 原包在`sources/v4.0-13d/`，建库后在`cases/v4.0-13d/` |
+
+古籍和GeoNames小型固定快照已经随本仓库提供。安装器还会安装Python/Node依赖，构建核心知识库、语义向量、案例候选库、同盘索引和网页，并安装Codex技能。完整固定版本可查[来源清单](config/sources.lock.json)和[模型配置](config/embedding-model.json)；[安装说明](docs/INSTALLATION.zh-CN.md#完整安装自动获取的仓库与模型)列出了各项用途与手动准备项。
+
+Qwen3-Embedding-0.6B负责在本地找资料，回答由Codex生成。要在网页直接提问、解读和追问，还需按下方“接通网页里的Codex”**单独安装Codex CLI，并登录使用者自己的账号**；安装器不会代为登录。
+
+完整安装建议至少留 **20GB** 空间；首次可能需要数十分钟到数小时。下载与构建会保留已完成阶段，失败后修复原因并重跑同一命令。想先预览自动执行的步骤，可在安装命令末尾加`--dry-run`。
+
+### 可选的较轻安装
 
 想先体验计算、知识检索和网页，可选择较轻安装：
 

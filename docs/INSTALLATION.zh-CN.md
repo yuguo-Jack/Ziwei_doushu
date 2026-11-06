@@ -39,6 +39,24 @@ $env:ZIWEI_REPORT_FONT = '你的中文字体绝对路径.ttf'
 
 完整资料约包含3.46GB案例分片、3.45GB候选数据库、1.21GB模型和其它源文件/中间结果，建议至少20GB空闲。core关键词方式不需要GPU和聊天模型下载。完整安装的批量构建可能耗时较长，终端会显示当前阶段。
 
+## 完整安装自动获取的仓库与模型
+
+使用者只需克隆主仓库`yuguo-Jack/Ziwei_doushu`。执行`bootstrap.py --profile full`后，安装器会自动获取下列来源，按固定版本放入对应子目录；**不需要用户再自行逐个git clone或手动下载模型**。
+
+| 类型 | 上游与固定版本 | 用途 / 保存位置 |
+|---|---|---|
+| 引擎仓库 | [Renhuai123/ziwei-doushu · a600484](https://github.com/Renhuai123/ziwei-doushu/tree/a600484a49255039d0725f1ba9e11ca81a948f97) | 公开排盘和算法代码，位于`repo/` |
+| 天纪仓库 | [Renhuai123/nihai-tianji-corpus · 462faa4](https://github.com/Renhuai123/nihai-tianji-corpus/tree/462faa4c70af40b8b87ad82ffa82a5823a485e94) | 课程引文、时间点和勘误，位于`sources/tianji-462faa4/` |
+| 人纪仓库 | [Renhuai123/nihai-renji-corpus · fdafae1](https://github.com/Renhuai123/nihai-renji-corpus/tree/fdafae1ea685756a92a59179fdfa2e6a01379100) | 独立领域的历史课程原文，位于`sources/renji/` |
+| 嵌入模型 | [Qwen/Qwen3-Embedding-0.6B · 固定快照](https://huggingface.co/Qwen/Qwen3-Embedding-0.6B/tree/97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3) | 约1.21GB、1024维，用于本地语义检索；位于`models/Qwen3-Embedding-0.6B/97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3/` |
+| 年度案例数据 | [ziwei-doushu v4.0-13d](https://github.com/Renhuai123/ziwei-doushu/releases/tag/v4.0-13d) | 1950–2026共77个`.jsonl.zst`原包，位于`sources/v4.0-13d/`；构建为案例分片及候选库 |
+
+古籍电子页和GeoNames快照已包含在主仓库，不需另克隆仓库。仓库完整commit见`config/sources.lock.json`，模型完整revision见`config/embedding-model.json`，案例归档逐包SHA-256见`data/MANIFEST.json`。安装器会核对模型文件和案例归档，模型快照包含权重、分词器及必要配置，不要只复制一个权重文件。
+
+自动准备顺序：Python依赖与可编辑CLI → 三个固定源仓库 → 两个Node项目依赖 → 核心知识与城市库 → 嵌入模型和向量 → 77年案例、候选与同盘索引 → 网页生产构建 → doctor → 可选技能安装。
+
+**需要手动准备的部分**是前述Python、Node.js、Git、Cairo和中文字体。要用网页自动问答，再单独安装Codex CLI并完成自己的账号登录；Qwen嵌入模型负责检索，Codex账号所用模型服务负责生成解释。安装器不下载本地聊天模型，也不代为授权账号。来源许可分别保留，见[第三方说明](../THIRD_PARTY_NOTICES.md)。
+
 ## 安装
 
 ```powershell
@@ -76,6 +94,14 @@ python -X utf8 ziwei.py search '三方四正' --limit 3
 python -X utf8 ziwei.py chart --input-file examples/fictional-first.json
 python -X utf8 ziwei.py serve --port 8765
 ```
+
+安装成功并启动最后一条`serve`命令后，在**运行该服务的同一台电脑**的浏览器地址栏输入：
+
+```text
+http://127.0.0.1:8765/
+```
+
+`127.0.0.1`也叫localhost，代表浏览器所在的电脑；不是作者的电脑或公网站点。每位使用者安装并启动自己的服务后，都可以在自己的电脑使用同一地址。GitHub展示源码与文档，当前项目未提供公共在线演示。保持服务终端开启，Ctrl+C停止后地址便不可用。
 
 `doctor`必须项失败会返回1；明确未请求的可选资料会显示未安装，不冒称完整安装。网页仅监听127.0.0.1。Windows还可用`scripts/start-workbench.ps1`后台启动，`scripts/stop-workbench.ps1`按身份核对后停止；其它平台可前台运行并用Ctrl+C停止。
 
