@@ -4,7 +4,15 @@
 
 剪辑节奏与参考见[REFERENCES.md](REFERENCES.md)。
 
-成片在`web/public/media/ziwei-intro.mp4`，网页右上角“观看介绍”可直接播放。`ziwei-intro.json`提供章节，`ziwei-intro.zh-CN.vtt`保存文字字幕。成片已烧录字幕；网页提供字幕下载，避免重复叠加两套字幕。
+文件按用途分开保存：
+
+| 目录 | 内容 |
+|---|---|
+| `media/product-tour/` | 制作源文件、最终音轨、字体及许可、重制说明 |
+| `web/public/media/product-tour/` | `intro.mp4`成片、`poster.jpg`封面、`chapters.json`章节、`zh-CN.vtt`字幕 |
+| `.cache/product-tour/` | 本机制作缓存、原始语音、中间文件与验证记录，不提交 |
+
+网页右上角“观看介绍”使用本地成片；已烧录字幕，文字字幕另供下载。
 
 ## 可维护源文件
 
@@ -44,6 +52,8 @@ python -X utf8 media/product-tour/produce.py audio
 
 新增画面文字后可用`produce.py fonts --display-font <NotoSerifSC-VF.ttf路径> --sans-font <NotoSansSC-VF.ttf路径>`重新生成带OFL的静态子集并更新`assets/fonts.json`；工具会拒绝遗漏的中文字符。展示字重700，正文字重400，CSS与实际字体匹配。
 
-`package`两遍编码并将视频控制在单文件10MiB发布限制内，保留1080p画面和faststart以便浏览器起播。它同时更新网页封面、README封面和成片清单。更新后重新构建网页，并核对实际播放、章节、字幕、音频、手机布局及HTTP Range拖动。
+`package`两遍编码并将视频控制在单文件10MiB发布限制内，保留1080p画面和faststart以便浏览器起播。它同时更新唯一的封面和成片清单。更新后重新构建网页，并核对实际播放、章节、字幕、音频、手机布局及HTTP Range拖动。
+
+GitHub首页使用GitHub视频附件内嵌播放，不能链接到仓库的大文件预览页。更换成片后，在GitHub的README编辑器上传新MP4，将生成的附件链接单独放一行，并通过该编辑器提交，使附件关联到公开README；再拉取这次提交。不要只复制未提交草稿的附件链接。附件与本地成片保持同一版本，发布后核对未登录访问和实际播放。
 
 所有原始语音片段、WAV、中间MP4、编码日志、快照、制作目录和HyperFrames记录位于被忽略的`.cache/product-tour/`。这些不属于交付源码；不要把整个制作目录或工具安装目录加入Git。网页成片、完成版音轨和字体为明确的最终资产。视频制作与工作台启动均不会自动提交或推送。

@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 SOURCE=Path(__file__).resolve().parent
 WORK=ROOT/'.cache/product-tour'
-PUBLIC=ROOT/'web/public/media'
+PUBLIC=ROOT/'web/public/media/product-tour'
 
 def read(path):return json.loads(path.read_text(encoding='utf8'))
 def write(path,value):
@@ -140,9 +140,9 @@ def audio():
     command(['ffmpeg','-hide_banner','-loglevel','error','-y','-i',mix,'-af','loudnorm=I=-15:TP=-1.4:LRA=6',
              '-c:a','aac','-b:a','128k','-movflags','+faststart',SOURCE/'assets/soundtrack.m4a'])
     write(SOURCE/'timing.json',{'duration':total,'fps':story['fps'],'bpm':story['bpm'],'scenes':timeline,'captions':captions})
-    write(PUBLIC/'ziwei-intro.json',{'duration':total,'chapters':[{'start':row['start'],'label':row['label']} for row in timeline if row.get('chapter',True)]})
+    write(PUBLIC/'chapters.json',{'duration':total,'chapters':[{'start':row['start'],'label':row['label']} for row in timeline if row.get('chapter',True)]})
     vtt='WEBVTT\n\n'+'\n\n'.join(f"{stamp(row['start'])} --> {stamp(row['end'])}\n{row['text']}" for row in captions)+'\n'
-    (PUBLIC/'ziwei-intro.zh-CN.vtt').write_text(vtt,encoding='utf8')
+    (PUBLIC/'zh-CN.vtt').write_text(vtt,encoding='utf8')
     print(json.dumps({'duration':total,'scenes':len(timeline),'captions':len(captions),'audio_peak_before_normalization':peak}))
 
 def prepare(gsap):
@@ -164,7 +164,7 @@ def prepare(gsap):
 
 def package(render):
     if not render or not render.is_file():raise ValueError('Pass --render pointing to the HyperFrames-rendered MP4.')
-    PUBLIC.mkdir(parents=True,exist_ok=True);target=PUBLIC/'ziwei-intro.mp4'
+    PUBLIC.mkdir(parents=True,exist_ok=True);target=PUBLIC/'intro.mp4'
     # Two-pass H.264 keeps the complete 1080p film under the publication guard's 10 MiB limit.
     story=read(SOURCE/'storyboard.json');seconds=story['duration']
     info=json.loads(command(['ffprobe','-v','error','-show_format','-show_streams','-of','json',render],capture_output=True,text=True,encoding='utf8').stdout)
@@ -176,9 +176,7 @@ def package(render):
         '-preset','slow','-pix_fmt','yuv420p','-g',str(story['fps']*2),'-t',str(seconds),'-passlogfile',prefix]
     command(common+['-pass','1','-an','-f','null','-'])
     command(common+['-pass','2','-c:a','aac','-b:a','80k','-movflags','+faststart',target])
-    command(['ffmpeg','-v','error','-y','-ss',str(story['poster_at']),'-i',target,'-frames:v','1','-q:v','2',PUBLIC/'ziwei-intro-poster.jpg'])
-    # Keep a small, GitHub-friendly poster by reusing the selected frame in README.
-    shutil.copyfile(PUBLIC/'ziwei-intro-poster.jpg',ROOT/'docs/screenshots/product-tour.jpg')
+    command(['ffmpeg','-v','error','-y','-ss',str(story['poster_at']),'-i',target,'-frames:v','1','-q:v','2',PUBLIC/'poster.jpg'])
     if target.stat().st_size>=10*1024**2:raise RuntimeError('Video exceeds the per-file publication budget.')
     write(SOURCE/'manifest.json',{'hyperframes':'0.9.19','gsap':'3.14.2','duration':seconds,'dimensions':[1920,1080],
         'fps':story['fps'],'bpm':story['bpm'],'video_codec':'H.264','audio_codec':'AAC','bytes':target.stat().st_size,'sha256':hashlib.sha256(target.read_bytes()).hexdigest(),

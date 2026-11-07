@@ -135,6 +135,7 @@ python -X utf8 ziwei.py chat ask '150字解释空宫借星，附出处'
 ```text
 src/ziwei_kb/       Python工具、检索、会话、网页后端
 web/               React网页与固定npm依赖
+media/product-tour/ 视频制作源文件、音轨、字体与重制说明
 scripts/           安装、获取固定来源、安装技能、启动/停止
 tools/             知识库、案例、向量和同盘构建器及回归检查
 tests/             发布与迁移检查
