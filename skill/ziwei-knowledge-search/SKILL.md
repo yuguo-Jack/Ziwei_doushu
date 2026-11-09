@@ -3,7 +3,7 @@ name: ziwei-knowledge-search
 description: 检索本机紫微斗数知识库、天纪课程与古籍，确定性排盘、运限、合盘对照、同盘结构、小六壬及报告导出，保留出处与适用条件。用于紫微研习、命盘追问和来源核对；明确要求时也可查独立的人纪历史课程域。
 ---
 
-# 紫微研习工具
+# Ziwei Toolkit
 
 项目安装后由技能`scripts/workspace.json`绑定工作区，或显式设置`ZIWEI_KB_ROOT`。所有核心功能直接调用本技能 `scripts/query.py`，无需网页启动；系统 Python 加 `-X utf8`，可从任何目录运行。嵌入模型只负责检索，**由当前 Codex 完成解释和追问**，无需另下载聊天模型或配置网站 API。
 
